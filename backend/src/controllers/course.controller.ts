@@ -46,7 +46,11 @@ export const courseController = {
     const userId = req.user?.userId;
     const userPrivileges = req.user?.privileges;
 
-    const course = await courseService.getById(courseId, userId, userPrivileges);
+    const course = await courseService.getById(
+      courseId,
+      userId,
+      userPrivileges
+    );
     sendSuccess(res, course);
   }),
 

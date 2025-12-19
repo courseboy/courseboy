@@ -238,7 +238,8 @@ export class CourseService {
       Admin: 4,
     };
 
-    const requiredLevel = privilegeHierarchy[course.requiredPrivilege.name] || 0;
+    const requiredLevel =
+      privilegeHierarchy[course.requiredPrivilege.name] || 0;
     const userMaxLevel = Math.max(
       ...userPrivileges.map((privilege) => privilegeHierarchy[privilege] || 0)
     );

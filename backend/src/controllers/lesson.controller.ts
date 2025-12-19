@@ -44,7 +44,11 @@ export const lessonController = {
     const userId = req.user?.userId;
     const userPrivileges = req.user?.privileges;
 
-    const lesson = await lessonService.getById(lessonId, userId, userPrivileges);
+    const lesson = await lessonService.getById(
+      lessonId,
+      userId,
+      userPrivileges
+    );
     sendSuccess(res, lesson);
   }),
 

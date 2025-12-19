@@ -86,7 +86,9 @@ export const authorize = (...allowedPrivileges: string[]) => {
       throw new UnauthorizedError("Authentication required");
     }
 
-    const hasPrivilege = req.user.privileges.some((privilege) => allowedPrivileges.includes(privilege));
+    const hasPrivilege = req.user.privileges.some((privilege) =>
+      allowedPrivileges.includes(privilege)
+    );
 
     if (!hasPrivilege) {
       throw new ForbiddenError("Insufficient permissions");

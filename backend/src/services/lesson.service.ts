@@ -235,7 +235,8 @@ export class LessonService {
       Admin: 4,
     };
 
-    const requiredLevel = privilegeHierarchy[lesson.course.requiredPrivilege.name] || 0;
+    const requiredLevel =
+      privilegeHierarchy[lesson.course.requiredPrivilege.name] || 0;
     const userMaxLevel = Math.max(
       ...userPrivileges.map((privilege) => privilegeHierarchy[privilege] || 0)
     );

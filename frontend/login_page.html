@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CourseForSeniors - Login</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3A7BD5",      /* User Request: Primary */
+                        "secondary": "#7BC8A4",    /* User Request: Secondary */
+                        "accent": "#F4A261",       /* User Request: Accent */
+                        "background-light": "#F8FAFC", /* User Request: Background */
+                        "background-dark": "#121820",
+                        "surface": "#EEF2F7",      /* User Request: Section BG */
+                        "surface-dark": "#1A222C",
+                        "text-main": "#1F2933",    /* User Request: Main Text */
+                        "text-secondary": "#6B7280", /* User Request: Secondary Text */
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', 'Noto Sans', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-white flex flex-col min-h-screen">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 shadow-sm">
+<div class="max-w-[1280px] mx-auto px-4 sm:px-10 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3 text-text-main dark:text-white cursor-pointer">
+<div class="size-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-size: 24px;">school</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">CourseForSeniors</h2>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-text-main dark:text-gray-300 text-base font-medium hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-text-main dark:text-gray-300 text-base font-medium hover:text-primary transition-colors" href="#">Courses</a>
+<a class="text-text-main dark:text-gray-300 text-base font-medium hover:text-primary transition-colors" href="#">Help Center</a>
+</nav>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex items-center justify-center p-4 md:p-10 relative overflow-hidden">
+<!-- Decorative Background Elements -->
+<div class="absolute top-[-10%] left-[-5%] w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px] -z-10"></div>
+<div class="absolute bottom-[-10%] right-[-5%] w-[300px] h-[300px] bg-primary/10 rounded-full blur-[100px] -z-10"></div>
+<div class="flex flex-col lg:flex-row w-full max-w-[1100px] bg-white dark:bg-surface-dark rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700 min-h-[600px]">
+<!-- Left Side: Image / Value Prop -->
+<div class="hidden lg:flex flex-col justify-between w-1/2 relative bg-surface dark:bg-gray-800 p-12">
+<!-- Background Image with Overlay -->
+<div class="absolute inset-0 z-0">
+<img alt="Elderly woman smiling while using a tablet for learning" class="w-full h-full object-cover opacity-90" data-alt="Elderly woman smiling while using a tablet for learning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWFUBZE3oT_IoYqhidzuuRIVzaBA7RwfBpl73XDbocLKQRafSJ2Ocrb_98tfrk4Zfjmz6rPaRqdqD4hd7KU2E_APyE6f3ZZ6CzgahylcAsTG326qfDbgFMh7I9SNz1wPZzI0TFo6Nrvtr9mdhMBhbjwPctXlTjk9S1iRoZE93CUfaBYXNcQAsM6XTCcTJV-lwkSs5h8ejoI9OBOFn3iwxsZrVWLGkd6R7f0uGrWvoU-JMGAzJkHoGoctfCOGw44GFluWDHobi7SyMT"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+</div>
+<div class="relative z-10 mt-auto">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/90 text-white text-sm font-medium mb-4 backdrop-blur-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+                        Trusted by 10,000+ Seniors
+                    </div>
+<h1 class="text-white text-4xl font-bold leading-tight mb-4">Lifelong learning made simple.</h1>
+<p class="text-gray-200 text-lg">Join a community of curious minds. Access courses designed specifically for your pace.</p>
+</div>
+</div>
+<!-- Right Side: Form -->
+<div class="w-full lg:w-1/2 flex flex-col p-6 sm:p-10 md:p-14 justify-center">
+<!-- Header Text -->
+<div class="mb-8">
+<h2 class="text-text-main dark:text-white text-3xl font-bold mb-2">Welcome Back</h2>
+<p class="text-text-secondary dark:text-gray-400 text-base">Please enter your details to continue learning.</p>
+</div>
+<!-- Tabs -->
+<div class="mb-8 border-b border-gray-200 dark:border-gray-700">
+<div class="flex gap-8">
+<button class="relative pb-3 text-primary border-b-[3px] border-primary font-bold text-lg flex items-center gap-2 transition-all">
+                            Login 
+                            <span class="text-sm font-normal text-text-secondary dark:text-gray-400">(เข้าสู่ระบบ)</span>
+</button>
+<button class="relative pb-3 text-text-secondary dark:text-gray-500 hover:text-text-main dark:hover:text-gray-300 font-medium text-lg flex items-center gap-2 transition-all border-b-[3px] border-transparent">
+                            Register 
+                            <span class="text-sm font-normal text-text-secondary dark:text-gray-500 opacity-70">(ลงทะเบียน)</span>
+</button>
+</div>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-6" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<div class="flex flex-col gap-2">
+<label class="text-text-main dark:text-gray-200 text-base font-medium">Email or Phone Number <span class="text-text-secondary text-sm font-normal ml-1">(อีเมล หรือ เบอร์โทร)</span></label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" style="font-size: 24px;">mail</span>
+<input class="w-full h-14 pl-12 pr-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-text-main dark:text-white placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary text-lg transition-all" placeholder="somchai@email.com" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-2">
+<label class="text-text-main dark:text-gray-200 text-base font-medium">Password <span class="text-text-secondary text-sm font-normal ml-1">(รหัสผ่าน)</span></label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" style="font-size: 24px;">lock</span>
+<input class="w-full h-14 pl-12 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-text-main dark:text-white placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary text-lg transition-all" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined" style="font-size: 24px;">visibility</span>
+</button>
+</div>
+</div>
+<!-- Options -->
+<div class="flex flex-wrap items-center justify-between gap-3 mt-1">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-text-main dark:text-gray-300 text-base group-hover:text-primary transition-colors">Remember me</span>
+</label>
+<a class="text-primary hover:text-blue-700 font-medium text-base hover:underline decoration-2 underline-offset-4" href="#">Forgot Password?</a>
+</div>
+<!-- Submit Button -->
+<button class="mt-4 w-full h-14 bg-primary hover:bg-blue-600 text-white text-lg font-bold rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+<span>Log In (เข้าสู่ระบบ)</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</form>
+<!-- Social Login Divider (Optional but adds modern touch) -->
+<div class="relative flex py-8 items-center">
+<div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+<span class="flex-shrink-0 mx-4 text-gray-400 text-sm">Or continue with</span>
+<div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="h-12 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-text-main dark:text-white font-medium">
+<img alt="Google Logo" class="w-5 h-5" data-alt="Google Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5-Qb53hl0zk5fqtePyKCdUWfhB7a7DDoTN-ykIKT6bu-HnjEj9avsvhymMKPRHvhiXpOGVbc1NAxhxdloOwtE9kRgclRCXibvDmrjjCNhurW7rxYxkv3iNMMH6LGDFL5J4Y6qv56qovTgld88D6zPWb8rfuI8qL1JCc0goTxRc8Q0ngWI9-mW2pj-rE0h74wcxAg2EJTk695skdqJlfoAYe69UZz6Hv7cZQ8GmzXoL18J78PIKR9t96KxRQEko_CAKsfJ1B3OmgUZ"/>
+                        Google
+                    </button>
+<button class="h-12 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-text-main dark:text-white font-medium">
+<img alt="Line Logo" class="w-5 h-5" data-alt="Line Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd2kueSHvfvYqve4tkiLNuKM2J2QAeRB1WqwkZd5kKwHi2u-N9WilJA5CwFR9dUqhaYzSK_GSo8a3BtNzsMTBuXvjSI1Wk7NanWbF3S1WErmf-tbp861LRnucYIFCdCEf2CPc8sLV3JDz1Hn-_TOXMabvtlFfmYP68xLRspPIrD0jxHt0cvwWmfLr95MeDkR6XZxP09Toa6yBx4q6O0R7AGHIcqvBm2RFJzlC7PPZoW67VzUBw8ID4fILMEc7-DoNk07iLeoKf7R48"/>
+                        Line
+                    </button>
+</div>
+<!-- Mobile only Register CTA -->
+<div class="mt-8 text-center lg:hidden">
+<p class="text-text-main dark:text-gray-300">
+                        Don't have an account? 
+                        <a class="text-primary font-bold hover:underline" href="#">Register now</a>
+</p>
+</div>
+</div>
+</div>
+<!-- Help Link Floating or Bottom -->
+<div class="absolute bottom-4 text-center w-full text-text-secondary text-sm">
+            Need help? <a class="text-primary hover:underline" href="#">Contact Support</a>
+</div>
+</main>
+</body></html>

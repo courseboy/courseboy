@@ -42,9 +42,9 @@ export const lessonController = {
   getById: asyncHandler(async (req: Request, res: Response) => {
     const lessonId = parseInt(req.params.id);
     const userId = req.user?.userId;
-    const userRoles = req.user?.roles;
+    const userPrivileges = req.user?.privileges;
 
-    const lesson = await lessonService.getById(lessonId, userId, userRoles);
+    const lesson = await lessonService.getById(lessonId, userId, userPrivileges);
     sendSuccess(res, lesson);
   }),
 

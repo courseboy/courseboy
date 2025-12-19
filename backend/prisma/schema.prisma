@@ -21,7 +21,7 @@ model AppUser {
 
   // Relations
   userSecret      UserSecret?
-  userRoles       UserRole[]
+  userPrivileges  UserPrivilege[]
   certificates    Certificate[]
   courseFeedbacks CourseFeedback[]
   quizSubmissions QuizSubmission[]
@@ -30,31 +30,31 @@ model AppUser {
   @@map("app_user")
 }
 
-model Role {
+model Privilege {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   description String?
   price       Int?
 
   // Relations
-  userRoles UserRole[]
-  courses   Course[]
+  userPrivileges UserPrivilege[]
+  courses        Course[]
 
-  @@map("role")
+  @@map("privilege")
 }
 
-model UserRole {
-  id       Int      @id @default(autoincrement())
-  userId   Int      @map("user_id")
-  roleId   Int      @map("role_id")
-  createAt DateTime @default(now()) @map("create_at")
+model UserPrivilege {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  privilegeId Int      @map("privilege_id")
+  createAt    DateTime @default(now()) @map("create_at")
 
   // Relations
-  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  privilege Privilege @relation(fields: [privilegeId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, roleId])
-  @@map("user_role")
+  @@unique([userId, privilegeId])
+  @@map("user_privilege")
 }
 
 model UserSecret {
@@ -73,18 +73,18 @@ model Course {
   name                   String?
   coverImg               String?   @map("cover_img")
   description            String?
-  requiredRoleId         Int?      @map("required_role_id")
+  requiredPrivilegeId    Int?      @map("required_privilege_id")
   isPublished            Boolean   @default(false) @map("is_published")
   certificateTemplateUrl String?   @map("certificate_template_url")
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime? @updatedAt @map("updated_at")
 
   // Relations
-  requiredRole     Role?            @relation(fields: [requiredRoleId], references: [id])
-  courseCategories CourseCategory[]
-  lessons          Lesson[]
-  certificates     Certificate[]
-  courseFeedbacks  CourseFeedback[]
+  requiredPrivilege Privilege?       @relation(fields: [requiredPrivilegeId], references: [id])
+  courseCategories  CourseCategory[]
+  lessons           Lesson[]
+  certificates      Certificate[]
+  courseFeedbacks   CourseFeedback[]
 
   @@map("course")
 }

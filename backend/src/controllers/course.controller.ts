@@ -10,7 +10,7 @@ export const createCourseSchema = z.object({
     name: z.string().min(1, "Course name is required"),
     description: z.string().optional(),
     coverImg: z.string().url().optional(),
-    requiredRoleId: z.number().int().positive().optional(),
+    requiredPrivilegeId: z.number().int().positive().optional(),
     certificateTemplateUrl: z.string().url().optional(),
   }),
 });
@@ -20,7 +20,7 @@ export const updateCourseSchema = z.object({
     name: z.string().min(1).optional(),
     description: z.string().optional(),
     coverImg: z.string().url().optional(),
-    requiredRoleId: z.number().int().positive().optional().nullable(),
+    requiredPrivilegeId: z.number().int().positive().optional().nullable(),
     certificateTemplateUrl: z.string().url().optional().nullable(),
     isPublished: z.boolean().optional(),
   }),
@@ -44,9 +44,9 @@ export const courseController = {
   getById: asyncHandler(async (req: Request, res: Response) => {
     const courseId = parseInt(req.params.id);
     const userId = req.user?.userId;
-    const userRoles = req.user?.roles;
+    const userPrivileges = req.user?.privileges;
 
-    const course = await courseService.getById(courseId, userId, userRoles);
+    const course = await courseService.getById(courseId, userId, userPrivileges);
     sendSuccess(res, course);
   }),
 

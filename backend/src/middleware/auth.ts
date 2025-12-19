@@ -8,7 +8,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 export interface JwtPayload {
   userId: number;
   email: string;
-  roles: string[];
+  privileges: string[];
 }
 
 declare global {
@@ -45,9 +45,9 @@ export const authenticate = asyncHandler(
       const user = await prisma.appUser.findUnique({
         where: { id: decoded.userId },
         include: {
-          userRoles: {
+          userPrivileges: {
             include: {
-              role: true,
+              privilege: true,
             },
           },
         },
@@ -61,7 +61,7 @@ export const authenticate = asyncHandler(
       req.user = {
         userId: user.id,
         email: user.email,
-        roles: user.userRoles.map((ur) => ur.role.name),
+        privileges: user.userPrivileges.map((up) => up.privilege.name),
       };
 
       next();
@@ -78,17 +78,17 @@ export const authenticate = asyncHandler(
 );
 
 /**
- * Middleware to check if user has required role(s)
+ * Middleware to check if user has required privilege(s)
  */
-export const authorize = (...allowedRoles: string[]) => {
+export const authorize = (...allowedPrivileges: string[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError("Authentication required");
     }
 
-    const hasRole = req.user.roles.some((role) => allowedRoles.includes(role));
+    const hasPrivilege = req.user.privileges.some((privilege) => allowedPrivileges.includes(privilege));
 
-    if (!hasRole) {
+    if (!hasPrivilege) {
       throw new ForbiddenError("Insufficient permissions");
     }
 
@@ -115,9 +115,9 @@ export const optionalAuth = asyncHandler(
         const user = await prisma.appUser.findUnique({
           where: { id: decoded.userId },
           include: {
-            userRoles: {
+            userPrivileges: {
               include: {
-                role: true,
+                privilege: true,
               },
             },
           },
@@ -127,7 +127,7 @@ export const optionalAuth = asyncHandler(
           req.user = {
             userId: user.id,
             email: user.email,
-            roles: user.userRoles.map((ur) => ur.role.name),
+            privileges: user.userPrivileges.map((up) => up.privilege.name),
           };
         }
       } catch {

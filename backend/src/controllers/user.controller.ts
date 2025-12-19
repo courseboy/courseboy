@@ -80,22 +80,22 @@ export const userController = {
   }),
 
   /**
-   * Assign role to user (admin)
+   * Assign privilege to user (admin)
    */
-  assignRole: asyncHandler(async (req: Request, res: Response) => {
+  assignPrivilege: asyncHandler(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id);
-    const roleId = parseInt(req.body.roleId);
-    const result = await userService.assignRole(userId, roleId);
+    const privilegeId = parseInt(req.body.privilegeId);
+    const result = await userService.assignPrivilege(userId, privilegeId);
     sendSuccess(res, result);
   }),
 
   /**
-   * Remove role from user (admin)
+   * Remove privilege from user (admin)
    */
-  removeRole: asyncHandler(async (req: Request, res: Response) => {
+  removePrivilege: asyncHandler(async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id);
-    const roleId = parseInt(req.params.roleId);
-    const result = await userService.removeRole(userId, roleId);
+    const privilegeId = parseInt(req.params.privilegeId);
+    const result = await userService.removePrivilege(userId, privilegeId);
     sendSuccess(res, result);
   }),
 };

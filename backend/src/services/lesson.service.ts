@@ -10,13 +10,13 @@ export class LessonService {
   /**
    * Get lesson by ID
    */
-  async getById(lessonId: number, userId?: number, userRoles?: string[]) {
+  async getById(lessonId: number, userId?: number, userPrivileges?: string[]) {
     const lesson = await prisma.lesson.findUnique({
       where: { id: lessonId },
       include: {
         course: {
           include: {
-            requiredRole: true,
+            requiredPrivilege: true,
           },
         },
         courseCategory: true,
@@ -28,7 +28,7 @@ export class LessonService {
     }
 
     // Check access
-    const hasAccess = this.checkLessonAccess(lesson, userRoles);
+    const hasAccess = this.checkLessonAccess(lesson, userPrivileges);
 
     if (!hasAccess && !lesson.isFreePreview) {
       throw new ForbiddenError("You do not have access to this lesson");
@@ -204,40 +204,40 @@ export class LessonService {
   private checkLessonAccess(
     lesson: {
       isFreePreview: boolean;
-      course: { requiredRole: { name: string } | null };
+      course: { requiredPrivilege: { name: string } | null };
     },
-    userRoles?: string[]
+    userPrivileges?: string[]
   ): boolean {
     // Free preview always accessible
     if (lesson.isFreePreview) {
       return true;
     }
 
-    // No role required
-    if (!lesson.course.requiredRole) {
+    // No privilege required
+    if (!lesson.course.requiredPrivilege) {
       return true;
     }
 
     // Admin always has access
-    if (userRoles?.includes("Admin")) {
+    if (userPrivileges?.includes("Admin")) {
       return true;
     }
 
-    if (!userRoles) {
+    if (!userPrivileges) {
       return false;
     }
 
-    // Role hierarchy check
-    const roleHierarchy: Record<string, number> = {
+    // Privilege hierarchy check
+    const privilegeHierarchy: Record<string, number> = {
       Member: 1,
       VIP: 2,
       SuperVIP: 3,
       Admin: 4,
     };
 
-    const requiredLevel = roleHierarchy[lesson.course.requiredRole.name] || 0;
+    const requiredLevel = privilegeHierarchy[lesson.course.requiredPrivilege.name] || 0;
     const userMaxLevel = Math.max(
-      ...userRoles.map((role) => roleHierarchy[role] || 0)
+      ...userPrivileges.map((privilege) => privilegeHierarchy[privilege] || 0)
     );
 
     return userMaxLevel >= requiredLevel;

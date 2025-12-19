@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store/auth";
 import { userApi } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/spinner";
-import { BookOpen, Clock, Award, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -41,106 +38,125 @@ export default function DashboardPage() {
   const progress = progressData || [];
 
   return (
-    <div className="container py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">
-          Welcome back, {user?.username || "Learner"}!
-        </h1>
-        <p className="mt-2 text-secondary-600">
-          Track your learning progress and continue where you left off.
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="mb-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={<BookOpen className="h-6 w-6" />}
-          title="Courses in Progress"
-          value={progress.length.toString()}
-          color="primary"
-        />
-        <StatCard
-          icon={<Clock className="h-6 w-6" />}
-          title="Total Watch Time"
-          value={formatWatchTime(
-            progress.reduce(
-              (sum: number, p: any) => sum + p.totalWatchedSeconds,
-              0
-            )
-          )}
-          color="blue"
-        />
-        <StatCard
-          icon={<TrendingUp className="h-6 w-6" />}
-          title="Lessons Completed"
-          value={progress
-            .reduce((sum: number, p: any) => sum + p.completedLessons, 0)
-            .toString()}
-          color="green"
-        />
-        <StatCard
-          icon={<Award className="h-6 w-6" />}
-          title="Certificates Earned"
-          value="0"
-          color="yellow"
-        />
-      </div>
-
-      {/* Continue Learning */}
-      <section>
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Continue Learning</h2>
-          <Link href="/courses">
-            <Button variant="outline">Browse All Courses</Button>
-          </Link>
+    <div className="w-full bg-background-light py-12 lg:py-16">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+        {/* Welcome Header */}
+        <div className="mb-10">
+          <span className="mb-2 inline-flex items-center gap-2 rounded-full bg-secondary/20 px-4 py-2 text-base font-bold text-teal-700">
+            <span className="material-symbols-outlined">waving_hand</span>
+            Welcome back!
+          </span>
+          <h1 className="text-3xl font-bold text-text-main sm:text-4xl">
+            Hello, {user?.username || "Learner"}!
+          </h1>
+          <p className="mt-2 text-xl text-text-secondary">
+            Track your learning progress and continue where you left off.
+          </p>
         </div>
 
-        {progress.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <BookOpen className="mx-auto h-12 w-12 text-secondary-400" />
-              <h3 className="mt-4 text-lg font-semibold">No courses yet</h3>
-              <p className="mt-2 text-secondary-600">
+        {/* Stats Cards */}
+        <div className="mb-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            icon="menu_book"
+            title="Courses in Progress"
+            value={progress.length.toString()}
+            color="primary"
+          />
+          <StatCard
+            icon="schedule"
+            title="Total Watch Time"
+            value={formatWatchTime(
+              progress.reduce(
+                (sum: number, p: any) => sum + p.totalWatchedSeconds,
+                0
+              )
+            )}
+            color="blue"
+          />
+          <StatCard
+            icon="trending_up"
+            title="Lessons Completed"
+            value={progress
+              .reduce((sum: number, p: any) => sum + p.completedLessons, 0)
+              .toString()}
+            color="green"
+          />
+          <StatCard
+            icon="workspace_premium"
+            title="Certificates Earned"
+            value="0"
+            color="yellow"
+          />
+        </div>
+
+        {/* Continue Learning */}
+        <section>
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
+              Continue Learning
+            </h2>
+            <Link
+              href="/courses"
+              className="flex h-12 items-center justify-center rounded-xl border-2 border-primary/20 bg-white px-6 text-lg font-bold text-primary transition-colors hover:bg-primary/5"
+            >
+              Browse All Courses
+            </Link>
+          </div>
+
+          {progress.length === 0 ? (
+            <div className="rounded-2xl bg-white p-12 text-center shadow-md">
+              <span className="material-symbols-outlined text-6xl text-text-secondary">
+                school
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-text-main">
+                No courses yet
+              </h3>
+              <p className="mt-2 text-lg text-text-secondary">
                 Start learning by enrolling in a course
               </p>
-              <Link href="/courses">
-                <Button className="mt-4">Browse Courses</Button>
+              <Link
+                href="/courses"
+                className="mt-6 inline-flex h-14 items-center justify-center rounded-xl bg-primary px-8 text-xl font-bold text-white shadow-lg transition-transform hover:-translate-y-1 hover:bg-primary-hover"
+              >
+                Browse Courses
               </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {progress.map((course: any) => (
-              <Card key={course.courseId}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{course.courseName}</CardTitle>
-                </CardHeader>
-                <CardContent>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {progress.map((course: any) => (
+                <article
+                  key={course.courseId}
+                  className="group overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <h3 className="mb-4 text-xl font-bold text-text-main">
+                    {course.courseName}
+                  </h3>
                   <div className="mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-secondary-600">Progress</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between text-base">
+                      <span className="text-text-secondary">Progress</span>
+                      <span className="font-medium text-text-main">
                         {course.completedLessons} lessons completed
                       </span>
                     </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary-200">
+                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-200">
                       <div
-                        className="h-full bg-primary-600 transition-all"
+                        className="h-full bg-primary transition-all"
                         style={{ width: "30%" }}
                       />
                     </div>
                   </div>
-                  <Link href={`/courses/${course.courseId}`}>
-                    <Button className="w-full" variant="outline">
-                      Continue
-                    </Button>
+                  <Link
+                    href={`/courses/${course.courseId}`}
+                    className="flex w-full items-center justify-center rounded-xl border-2 border-primary/10 bg-primary/5 py-3 text-lg font-bold text-primary transition-colors hover:bg-primary hover:text-white"
+                  >
+                    Continue
                   </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
@@ -151,28 +167,28 @@ function StatCard({
   value,
   color,
 }: {
-  icon: React.ReactNode;
+  icon: string;
   title: string;
   value: string;
   color: "primary" | "blue" | "green" | "yellow";
 }) {
   const colorClasses = {
-    primary: "bg-primary-100 text-primary-600",
+    primary: "bg-primary/10 text-primary",
     blue: "bg-blue-100 text-blue-600",
     green: "bg-green-100 text-green-600",
     yellow: "bg-yellow-100 text-yellow-600",
   };
 
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-6">
-        <div className={`rounded-lg p-3 ${colorClasses[color]}`}>{icon}</div>
-        <div>
-          <p className="text-sm text-secondary-600">{title}</p>
-          <p className="text-2xl font-bold">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-md">
+      <div className={`rounded-xl p-4 ${colorClasses[color]}`}>
+        <span className="material-symbols-outlined text-3xl">{icon}</span>
+      </div>
+      <div>
+        <p className="text-base text-text-secondary">{title}</p>
+        <p className="text-3xl font-bold text-text-main">{value}</p>
+      </div>
+    </div>
   );
 }
 

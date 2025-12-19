@@ -9,14 +9,6 @@ import { z } from "zod";
 import { useAuthStore } from "@/lib/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -48,82 +40,94 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                {error}
-                <button
-                  type="button"
-                  onClick={clearError}
-                  className="ml-2 font-medium underline"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
+    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-background-light py-12">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl lg:p-10">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-4xl">login</span>
+          </div>
+          <h1 className="text-3xl font-bold text-text-main">Welcome Back</h1>
+          <p className="mt-2 text-lg text-text-secondary">
+            Sign in to continue learning
+          </p>
+        </div>
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              error={errors.email?.message}
-              {...register("email")}
-            />
-
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                error={errors.password?.message}
-                {...register("password")}
-              />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {error && (
+            <div className="rounded-xl bg-red-50 p-4 text-base text-red-600">
+              {error}
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-sm text-secondary-500 hover:text-secondary-700"
+                onClick={clearError}
+                className="ml-2 font-medium underline"
               >
-                {showPassword ? "Hide" : "Show"}
+                Dismiss
               </button>
             </div>
+          )}
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" className="rounded" />
-                Remember me
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-primary-600 hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-          </CardContent>
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...register("email")}
+          />
 
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-            <p className="text-center text-sm text-secondary-600">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/register"
-                className="text-primary-600 hover:underline"
-              >
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              error={errors.password?.message}
+              {...register("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-11 text-base text-text-secondary hover:text-primary"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-3 text-base text-text-secondary">
+              <input
+                type="checkbox"
+                className="size-5 rounded border-gray-300"
+              />
+              Remember me
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-base text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
+          </Button>
+
+          <p className="text-center text-lg text-text-secondary">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="font-bold text-primary hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

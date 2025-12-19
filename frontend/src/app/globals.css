@@ -2,9 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-background-light font-display text-text-main antialiased;
+  }
+}
+
 @layer components {
   .container {
-    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-[1280px] px-6 lg:px-10;
   }
 }
 
@@ -12,6 +18,16 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary/20;
 }
 
 /* Custom scrollbar */

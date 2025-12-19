@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
-const inter = Inter({ subsets: ["latin"] });
+const lexend = Lexend({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CourseBoy - Learn Anything",
-  description: "Online learning platform for everyone",
+  title: "SeniorLearn - Learn at Your Own Pace",
+  description:
+    "Simple video lessons designed for seniors. Easy-to-follow courses on technology, hobbies, and health.",
 };
 
 export default function RootLayout({
@@ -18,10 +19,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="light">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={lexend.className}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
+          <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />

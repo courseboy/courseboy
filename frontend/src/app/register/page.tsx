@@ -9,14 +9,6 @@ import { z } from "zod";
 import { useAuthStore } from "@/lib/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 
 const registerSchema = z
   .object({
@@ -66,98 +58,107 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>
-            Join CourseBoy and start learning today
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                {error}
-                <button
-                  type="button"
-                  onClick={clearError}
-                  className="ml-2 font-medium underline"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
+    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-background-light py-12">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl lg:p-10">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-secondary/20 text-teal-700">
+            <span className="material-symbols-outlined text-4xl">
+              person_add
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold text-text-main">Create Account</h1>
+          <p className="mt-2 text-lg text-text-secondary">
+            Join SeniorLearn and start learning today
+          </p>
+        </div>
 
-            <Input
-              label="Username"
-              type="text"
-              placeholder="johndoe"
-              error={errors.username?.message}
-              {...register("username")}
-            />
-
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              error={errors.email?.message}
-              {...register("email")}
-            />
-
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password"
-                error={errors.password?.message}
-                {...register("password")}
-              />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {error && (
+            <div className="rounded-xl bg-red-50 p-4 text-base text-red-600">
+              {error}
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-sm text-secondary-500 hover:text-secondary-700"
+                onClick={clearError}
+                className="ml-2 font-medium underline"
               >
-                {showPassword ? "Hide" : "Show"}
+                Dismiss
               </button>
             </div>
+          )}
 
+          <Input
+            label="Username"
+            type="text"
+            placeholder="johndoe"
+            error={errors.username?.message}
+            {...register("username")}
+          />
+
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...register("email")}
+          />
+
+          <div className="relative">
             <Input
-              label="Confirm Password"
+              label="Password"
               type={showPassword ? "text" : "password"}
-              placeholder="Confirm your password"
-              error={errors.confirmPassword?.message}
-              {...register("confirmPassword")}
+              placeholder="Create a strong password"
+              error={errors.password?.message}
+              {...register("password")}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-11 text-base text-text-secondary hover:text-primary"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
 
-            <p className="text-xs text-secondary-500">
-              By creating an account, you agree to our{" "}
-              <Link href="/terms" className="text-primary-600 hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="/privacy"
-                className="text-primary-600 hover:underline"
-              >
-                Privacy Policy
-              </Link>
-            </p>
-          </CardContent>
+          <Input
+            label="Confirm Password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Confirm your password"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword")}
+          />
 
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
-            </Button>
-            <p className="text-center text-sm text-secondary-600">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary-600 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
+          <p className="text-base text-text-secondary">
+            By creating an account, you agree to our{" "}
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+          </p>
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating account..." : "Create Account"}
+          </Button>
+
+          <p className="text-center text-lg text-text-secondary">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-primary hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

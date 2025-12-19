@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SeniorLearn - Home</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3A7BD5",
+                        "primary-hover": "#2c62aa",
+                        "secondary": "#7BC8A4",
+                        "accent": "#F4A261",
+                        "background-light": "#F8FAFC",
+                        "background-section": "#EEF2F7",
+                        "background-dark": "#121820",
+                        "text-main": "#1F2933",
+                        "text-secondary": "#6B7280",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem", 
+                        "lg": "0.75rem", 
+                        "xl": "1rem", 
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light font-display text-text-main antialiased selection:bg-primary/20">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Navigation -->
+<nav class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
+<div class="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-6 lg:px-10">
+<div class="flex items-center gap-4">
+<div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">school</span>
+</div>
+<span class="text-2xl font-bold tracking-tight text-text-main">SeniorLearn</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-lg font-medium text-text-main hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-lg font-medium text-text-secondary hover:text-primary transition-colors" href="#">All Courses</a>
+<a class="text-lg font-medium text-text-secondary hover:text-primary transition-colors" href="#">Help</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover">
+<span>My Courses</span>
+</button>
+<!-- Mobile Menu Icon -->
+<button class="md:hidden flex size-12 items-center justify-center rounded-full text-text-main hover:bg-gray-100">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="w-full bg-background-light py-12 lg:py-20">
+<div class="mx-auto max-w-[1280px] px-6 lg:px-10">
+<div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+<div class="flex flex-col gap-8 order-2 lg:order-1">
+<div class="flex flex-col gap-4">
+<span class="w-fit rounded-full bg-secondary/20 px-4 py-2 text-base font-bold text-teal-700">
+                                Welcome to SeniorLearn
+                            </span>
+<h1 class="text-4xl font-extrabold leading-[1.15] text-text-main sm:text-5xl lg:text-6xl tracking-tight">
+                                Learn something new today, at your own pace.
+                            </h1>
+<p class="max-w-xl text-xl leading-relaxed text-text-secondary">
+                                Simple video lessons designed just for you. Start your journey with easy-to-follow courses on technology, hobbies, and health.
+                            </p>
+</div>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="flex h-14 min-w-[180px] items-center justify-center rounded-xl bg-primary px-8 text-xl font-bold text-white shadow-lg transition-transform hover:-translate-y-1 hover:bg-primary-hover">
+                                Start Learning
+                            </button>
+<button class="flex h-14 min-w-[180px] items-center justify-center rounded-xl bg-white border-2 border-primary/20 px-8 text-xl font-bold text-primary transition-colors hover:bg-primary/5">
+                                Browse Library
+                            </button>
+</div>
+</div>
+<div class="relative order-1 lg:order-2">
+<div class="absolute -inset-4 rounded-[2rem] bg-accent/10 blur-2xl"></div>
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-[2rem] bg-gray-200 shadow-xl" data-alt="Elderly woman smiling while using a tablet comfortably on a sofa" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWKrBWI2LOYZacrjeECc0vy9u6zs6-H3HhvaKOc7ahlaWiXsWiKlGLK2QIxVjaK_KLbSP2JA3tDjl-kubD9Wp8MF1wEY9c94YllQ36TV2pOdZinp4iLhwLBYPbJiPMzX93A8rCN_cc-eh_tourpfeosJiO4IzbkRpfFv82oV8gMTe3SDrVnt06snmV7_0XPvbh8x4rXZmUgrP0SXYoHT-yGIq1p3imVAd_bgYoD1041HcxghjZlVBLR9ouq93ifyIRXCMwxq7BVkQJ'); background-size: cover; background-position: center;">
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Recommended Courses Section -->
+<section class="w-full bg-background-section py-16 lg:py-24">
+<div class="mx-auto flex max-w-[1280px] flex-col gap-10 px-6 lg:px-10">
+<div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+<div>
+<h2 class="text-3xl font-bold text-text-main sm:text-4xl">Recommended for You</h2>
+<p class="mt-2 text-xl text-text-secondary">Popular courses selected by our community.</p>
+</div>
+<a class="hidden md:flex items-center gap-1 text-lg font-bold text-primary hover:text-primary-hover" href="#">
+                        View all courses <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+<!-- Card 1 -->
+<article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
+<div class="aspect-video w-full bg-gray-200" data-alt="Close up of hands holding a smartphone displaying app icons" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAy7GWjmUFbahvSXZDHKAkYJh8SHIIbHC9GnYqRVPJSxNv0UofJwXBU_oUJuqsF4OOofEfMX_uNbCelRXFpTPR_Ej1D_42WFZT3qwv2xmBgdWR7vH4sZSRX1g2p9Rc5giuJFUHKGS_zaGoJXKLGbhPCUTPwN95M_mMcUtuxVOZ3XDIaUQjrzsgqmYlFxgxpYptl2EiYPabO6M3SyvsHCV5Y0w9FsYGeojkCQpJJH0Dw08bbpy4u9rvVqRp6fBezb_YC8qgruNZVv807'); background-size: cover; background-position: center;">
+</div>
+<div class="flex flex-1 flex-col p-6">
+<div class="mb-3 flex items-center gap-2">
+<span class="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-700">Technology</span>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-lg">star</span>
+<span class="text-sm font-bold text-text-main">4.9</span>
+</div>
+</div>
+<h3 class="mb-2 text-2xl font-bold text-text-main group-hover:text-primary transition-colors">Smartphone Basics</h3>
+<p class="mb-6 flex-1 text-lg leading-normal text-text-secondary">Master your device easily. Learn to send messages, take photos, and video call family.</p>
+<button class="w-full rounded-xl border-2 border-primary/10 bg-primary/5 py-3 text-lg font-bold text-primary transition-colors hover:bg-primary hover:text-white">
+                                View Course
+                            </button>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
+<div class="aspect-video w-full bg-gray-200" data-alt="Fresh vegetables and healthy ingredients on a kitchen table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBlpAUPQYAQay9Z4cM3YIVXsngbz_kSQsZxEmE5EslPbmk0NGmIo5ckrEgXm2MZfZpfwbxdMDdvBJl6kZzdnPvc6jNB4wLdwG-RZYujpIHQDaT7ArGk08rmnID9Qw5xmHUoMhIv8aEBCpR0cSzlp3l5GOyJ0QKC782dQd9Z6LATNwBoL3inycK7I97v4eFMzNAazd0y-wCl912akY1zqOVKr6l9SfPOdR79lqKufj0cYmD9ouifo1JRD3zd5R01-dCTFnNhFn4QzUFY'); background-size: cover; background-position: center;">
+</div>
+<div class="flex flex-1 flex-col p-6">
+<div class="mb-3 flex items-center gap-2">
+<span class="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">Health</span>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-lg">star</span>
+<span class="text-sm font-bold text-text-main">4.8</span>
+</div>
+</div>
+<h3 class="mb-2 text-2xl font-bold text-text-main group-hover:text-primary transition-colors">Healthy Cooking</h3>
+<p class="mb-6 flex-1 text-lg leading-normal text-text-secondary">Delicious &amp; nutritious meals prepared simply. Focus on heart health and energy.</p>
+<button class="w-full rounded-xl border-2 border-primary/10 bg-primary/5 py-3 text-lg font-bold text-primary transition-colors hover:bg-primary hover:text-white">
+                                View Course
+                            </button>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
+<div class="aspect-video w-full bg-gray-200" data-alt="A smartphone screen showing a chat application interface" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBCBIPf1jKXeVY75wREiX-dq20srDz7ffdlaVMD5qCFe-mseTPrK5s90W8zfKYKXXEajDnnwouhCe75at973NBpAxAlGrdWE-FvvMFj_V77PyvsW-CVCWGw6lk3SGgiQVMwT7kUtFtP1Su55oCA_CJYr-JdE5XUcaldLAPMFcBr-AiEOZ9qnZlvNqmbYYqhLSN6yFyErLGrGMe40vaw2B8jqPycof3GvAI1wd8stKRaEtrkvvj1tbskFgf7SaBrcwZfViyF_zIJTBCr'); background-size: cover; background-position: center;">
+</div>
+<div class="flex flex-1 flex-col p-6">
+<div class="mb-3 flex items-center gap-2">
+<span class="rounded-full bg-purple-100 px-3 py-1 text-sm font-bold text-purple-700">Communication</span>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-lg">star</span>
+<span class="text-sm font-bold text-text-main">5.0</span>
+</div>
+</div>
+<h3 class="mb-2 text-2xl font-bold text-text-main group-hover:text-primary transition-colors">Intro to Line App</h3>
+<p class="mb-6 flex-1 text-lg leading-normal text-text-secondary">Connect with children and grandchildren. Learn stickers, calls, and group chats.</p>
+<button class="w-full rounded-xl border-2 border-primary/10 bg-primary/5 py-3 text-lg font-bold text-primary transition-colors hover:bg-primary hover:text-white">
+                                View Course
+                            </button>
+</div>
+</article>
+</div>
+<div class="mt-4 flex justify-center md:hidden">
+<button class="flex h-12 w-full items-center justify-center rounded-xl bg-white border border-gray-300 px-6 text-lg font-bold text-text-main shadow-sm">
+                        View All Courses
+                    </button>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="w-full bg-white py-16 lg:py-24">
+<div class="mx-auto max-w-[960px] px-6 text-center">
+<div class="flex flex-col items-center gap-6 rounded-[2.5rem] bg-gradient-to-br from-primary/10 to-transparent p-10 lg:p-16">
+<span class="material-symbols-outlined text-6xl text-primary">auto_stories</span>
+<h2 class="max-w-[720px] text-3xl font-extrabold leading-tight text-text-main sm:text-4xl lg:text-5xl">
+                        Browse our complete library
+                    </h2>
+<p class="max-w-[600px] text-xl text-text-secondary">
+                        Find the perfect topic to explore next. We have over 50 courses designed specifically for seniors.
+                    </p>
+<div class="mt-4">
+<button class="flex h-16 min-w-[240px] items-center justify-center rounded-xl bg-accent px-8 text-xl font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-accent/90">
+                            See All Courses
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full bg-white border-t border-gray-100 py-12">
+<div class="mx-auto max-w-[1280px] px-6 lg:px-10">
+<div class="flex flex-col gap-10 md:flex-row md:justify-between">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-4xl text-primary">school</span>
+<span class="text-2xl font-bold text-text-main">SeniorLearn</span>
+</div>
+<p class="max-w-xs text-lg text-text-secondary">Making technology and learning accessible for everyone, at any age.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-xl font-bold text-text-main">Need Help?</h4>
+<a class="flex items-center gap-3 text-2xl font-bold text-primary hover:underline" href="tel:02-123-4567">
+<span class="material-symbols-outlined fill-1">call</span>
+                            02-123-4567
+                        </a>
+<p class="text-lg text-text-secondary">Daily 8:00 AM - 6:00 PM</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-xl font-bold text-text-main">Quick Links</h4>
+<div class="flex flex-col gap-2">
+<a class="text-lg text-text-secondary hover:text-primary" href="#">About Us</a>
+<a class="text-lg text-text-secondary hover:text-primary" href="#">Contact</a>
+<a class="text-lg text-text-secondary hover:text-primary" href="#">Privacy Policy</a>
+</div>
+</div>
+</div>
+<div class="mt-12 border-t border-gray-100 pt-8 text-center md:text-left">
+<p class="text-base text-text-secondary">© 2023 SeniorLearn. All rights reserved.</p>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

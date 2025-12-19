@@ -5,19 +5,8 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { courseApi } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { formatDuration } from "@/lib/utils";
-import {
-  Star,
-  Clock,
-  BookOpen,
-  Play,
-  Lock,
-  CheckCircle,
-  Award,
-} from "lucide-react";
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -37,11 +26,21 @@ export default function CourseDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="container py-12 text-center">
-        <p className="text-red-600">Course not found or failed to load.</p>
-        <Link href="/courses">
-          <Button className="mt-4">Back to Courses</Button>
-        </Link>
+      <div className="mx-auto max-w-[1280px] px-6 py-12 text-center lg:px-10">
+        <div className="rounded-2xl bg-white p-12 shadow-md">
+          <span className="material-symbols-outlined text-6xl text-red-500">
+            error
+          </span>
+          <p className="mt-4 text-xl text-red-600">
+            Course not found or failed to load.
+          </p>
+          <Link
+            href="/courses"
+            className="mt-6 inline-flex h-14 items-center justify-center rounded-xl bg-primary px-8 text-xl font-bold text-white shadow-lg transition-transform hover:-translate-y-1 hover:bg-primary-hover"
+          >
+            Back to Courses
+          </Link>
+        </div>
       </div>
     );
   }
@@ -49,30 +48,37 @@ export default function CourseDetailPage() {
   const course = data;
 
   return (
-    <div className="min-h-screen bg-secondary-50">
+    <div className="min-h-screen bg-background-light">
       {/* Hero Section */}
-      <div className="bg-secondary-900 text-white">
-        <div className="container py-12">
+      <div className="bg-gradient-to-br from-primary to-primary-hover text-white">
+        <div className="mx-auto max-w-[1280px] px-6 py-12 lg:px-10 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <h1 className="text-3xl font-bold lg:text-4xl">{course.name}</h1>
-              <p className="mt-4 text-lg text-secondary-300">
+              <span className="mb-4 inline-block rounded-full bg-white/20 px-4 py-2 text-base font-bold">
+                {course.requiredRole || "All Members"}
+              </span>
+              <h1 className="text-3xl font-extrabold lg:text-5xl">
+                {course.name}
+              </h1>
+              <p className="mt-4 text-xl leading-relaxed text-white/90">
                 {course.description}
               </p>
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
+              <div className="mt-6 flex flex-wrap items-center gap-6 text-lg">
                 {course.averageRating > 0 && (
-                  <span className="flex items-center gap-1">
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-yellow-400">
+                      star
+                    </span>
+                    <span className="font-bold">
                       {course.averageRating.toFixed(1)}
                     </span>
-                    <span className="text-secondary-400">
+                    <span className="text-white/70">
                       ({course.feedbacksCount} reviews)
                     </span>
                   </span>
                 )}
-                <span className="flex items-center gap-1 text-secondary-300">
-                  <BookOpen className="h-5 w-5" />
+                <span className="flex items-center gap-2 text-white/90">
+                  <span className="material-symbols-outlined">menu_book</span>
                   {course.categories?.reduce(
                     (sum: number, cat: any) => sum + cat.lessons.length,
                     0
@@ -82,14 +88,16 @@ export default function CourseDetailPage() {
               </div>
 
               {course.userProgress && (
-                <div className="mt-6">
-                  <div className="flex items-center justify-between text-sm">
+                <div className="mt-8">
+                  <div className="flex items-center justify-between text-base">
                     <span>Your Progress</span>
-                    <span>{course.userProgress.percentage}%</span>
+                    <span className="font-bold">
+                      {course.userProgress.percentage}%
+                    </span>
                   </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary-700">
+                  <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/30">
                     <div
-                      className="h-full bg-primary-500 transition-all"
+                      className="h-full bg-secondary transition-all"
                       style={{ width: `${course.userProgress.percentage}%` }}
                     />
                   </div>
@@ -97,7 +105,7 @@ export default function CourseDetailPage() {
               )}
             </div>
 
-            <div className="relative aspect-video overflow-hidden rounded-lg lg:aspect-[4/3]">
+            <div className="relative aspect-video overflow-hidden rounded-2xl shadow-xl lg:aspect-[4/3]">
               {course.coverImg ? (
                 <Image
                   src={course.coverImg}
@@ -106,8 +114,10 @@ export default function CourseDetailPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center bg-secondary-800">
-                  <BookOpen className="h-16 w-16 text-secondary-600" />
+                <div className="flex h-full items-center justify-center bg-white/10">
+                  <span className="material-symbols-outlined text-6xl text-white/50">
+                    play_circle
+                  </span>
                 </div>
               )}
             </div>
@@ -116,39 +126,52 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Content Section */}
-      <div className="container py-12">
+      <div className="mx-auto max-w-[1280px] px-6 py-12 lg:px-10 lg:py-16">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Course Content */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold">Course Content</h2>
+            <h2 className="text-2xl font-bold text-text-main sm:text-3xl">
+              Course Content
+            </h2>
             <div className="mt-6 space-y-4">
               {course.categories?.map((category: any) => (
-                <Card key={category.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{category.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                <div
+                  key={category.id}
+                  className="overflow-hidden rounded-2xl bg-white shadow-md"
+                >
+                  <div className="border-b border-gray-100 bg-background-section px-6 py-4">
+                    <h3 className="text-xl font-bold text-text-main">
+                      {category.name}
+                    </h3>
+                  </div>
+                  <div className="p-4">
                     <ul className="space-y-2">
                       {category.lessons.map((lesson: any) => (
                         <li
                           key={lesson.id}
-                          className="flex items-center justify-between rounded-lg p-3 hover:bg-secondary-50"
+                          className="flex items-center justify-between rounded-xl p-4 transition-colors hover:bg-gray-50"
                         >
                           <div className="flex items-center gap-3">
                             {lesson.isFreePreview || course.hasAccess ? (
-                              <Play className="h-5 w-5 text-primary-600" />
+                              <span className="material-symbols-outlined text-2xl text-primary">
+                                play_circle
+                              </span>
                             ) : (
-                              <Lock className="h-5 w-5 text-secondary-400" />
+                              <span className="material-symbols-outlined text-2xl text-text-secondary">
+                                lock
+                              </span>
                             )}
-                            <span className="text-sm">{lesson.title}</span>
+                            <span className="text-lg text-text-main">
+                              {lesson.title}
+                            </span>
                             {lesson.isFreePreview && (
-                              <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">
-                                Free
+                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
+                                Free Preview
                               </span>
                             )}
                           </div>
                           {lesson.durationSeconds && (
-                            <span className="text-sm text-secondary-500">
+                            <span className="text-base text-text-secondary">
                               {formatDuration(lesson.durationSeconds)}
                             </span>
                           )}
@@ -157,66 +180,83 @@ export default function CourseDetailPage() {
                     </ul>
 
                     {category.quizzes?.length > 0 && (
-                      <div className="mt-4 border-t pt-4">
-                        <h4 className="mb-2 text-sm font-medium text-secondary-600">
+                      <div className="mt-4 border-t border-gray-100 pt-4">
+                        <h4 className="mb-3 flex items-center gap-2 text-base font-bold text-text-secondary">
+                          <span className="material-symbols-outlined">
+                            quiz
+                          </span>
                           Quizzes
                         </h4>
                         {category.quizzes.map((quiz: any) => (
                           <div
                             key={quiz.id}
-                            className="flex items-center justify-between py-2"
+                            className="flex items-center justify-between rounded-xl bg-gray-50 p-4"
                           >
-                            <span className="text-sm">{quiz.name}</span>
-                            <span className="text-xs text-secondary-500">
+                            <span className="text-lg text-text-main">
+                              {quiz.name}
+                            </span>
+                            <span className="text-base text-text-secondary">
                               Max: {quiz.maxScore} pts
                             </span>
                           </div>
                         ))}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                {!course.hasAccess ? (
-                  <>
-                    <p className="mb-4 text-center text-secondary-600">
+            <div className="overflow-hidden rounded-2xl bg-white p-6 shadow-md">
+              {!course.hasAccess ? (
+                <>
+                  <div className="mb-4 text-center">
+                    <span className="material-symbols-outlined text-5xl text-accent">
+                      workspace_premium
+                    </span>
+                    <p className="mt-2 text-lg text-text-secondary">
                       {course.requiredRole
                         ? `Requires ${course.requiredRole} membership`
                         : "Enroll to access all lessons"}
                     </p>
-                    <Link href="/pricing">
-                      <Button className="w-full">Get Access</Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4 flex items-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="font-medium">You have access</span>
-                    </div>
-                    <Button className="w-full">Continue Learning</Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                  </div>
+                  <Link
+                    href="/pricing"
+                    className="flex h-14 w-full items-center justify-center rounded-xl bg-accent text-xl font-bold text-white shadow-lg transition-transform hover:scale-105"
+                  >
+                    Get Access
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center justify-center gap-2 text-green-600">
+                    <span className="material-symbols-outlined text-3xl">
+                      check_circle
+                    </span>
+                    <span className="text-xl font-bold">You have access</span>
+                  </div>
+                  <button className="flex h-14 w-full items-center justify-center rounded-xl bg-primary text-xl font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-primary-hover">
+                    Continue Learning
+                  </button>
+                </>
+              )}
+            </div>
 
             {course.certificateTemplateUrl && (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Award className="mx-auto h-12 w-12 text-primary-600" />
-                  <h3 className="mt-4 font-semibold">Earn a Certificate</h3>
-                  <p className="mt-2 text-sm text-secondary-600">
-                    Complete this course to receive a certificate of completion
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="overflow-hidden rounded-2xl bg-white p-6 text-center shadow-md">
+                <span className="material-symbols-outlined text-5xl text-primary">
+                  workspace_premium
+                </span>
+                <h3 className="mt-4 text-xl font-bold text-text-main">
+                  Earn a Certificate
+                </h3>
+                <p className="mt-2 text-lg text-text-secondary">
+                  Complete this course to receive a certificate of completion
+                </p>
+              </div>
             )}
           </div>
         </div>

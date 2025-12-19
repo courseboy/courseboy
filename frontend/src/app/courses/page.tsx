@@ -4,16 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import { courseApi } from "@/lib/api";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/spinner";
-import { Star, Clock, BookOpen } from "lucide-react";
 
 interface Course {
   id: number;
@@ -25,6 +16,12 @@ interface Course {
   averageRating: number;
   feedbacksCount: number;
 }
+
+const roleColors: Record<string, string> = {
+  Member: "bg-blue-100 text-blue-700",
+  VIP: "bg-purple-100 text-purple-700",
+  SuperVIP: "bg-yellow-100 text-yellow-700",
+};
 
 export default function CoursesPage() {
   const { data, isLoading, error } = useQuery({
@@ -41,10 +38,15 @@ export default function CoursesPage() {
 
   if (error) {
     return (
-      <div className="container py-12 text-center">
-        <p className="text-red-600">
-          Failed to load courses. Please try again.
-        </p>
+      <div className="mx-auto max-w-[1280px] px-6 py-12 text-center lg:px-10">
+        <div className="rounded-2xl bg-red-50 p-8">
+          <span className="material-symbols-outlined text-5xl text-red-500">
+            error
+          </span>
+          <p className="mt-4 text-xl text-red-600">
+            Failed to load courses. Please try again.
+          </p>
+        </div>
       </div>
     );
   }
@@ -52,37 +54,46 @@ export default function CoursesPage() {
   const courses: Course[] = data?.data || [];
 
   return (
-    <div className="container py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">All Courses</h1>
-        <p className="mt-2 text-secondary-600">
-          Explore our collection of courses and start learning today
-        </p>
-      </div>
-
-      {courses.length === 0 ? (
-        <div className="rounded-lg border bg-secondary-50 p-12 text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-secondary-400" />
-          <h3 className="mt-4 text-lg font-semibold">No courses available</h3>
-          <p className="mt-2 text-secondary-600">
-            Check back later for new courses
+    <div className="w-full bg-background-light py-12 lg:py-16">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-text-main sm:text-4xl">
+            All Courses
+          </h1>
+          <p className="mt-2 text-xl text-text-secondary">
+            Explore our collection of easy-to-follow courses designed for you
           </p>
         </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </div>
-      )}
+
+        {courses.length === 0 ? (
+          <div className="rounded-2xl bg-white p-12 text-center shadow-md">
+            <span className="material-symbols-outlined text-6xl text-text-secondary">
+              school
+            </span>
+            <h3 className="mt-4 text-2xl font-bold text-text-main">
+              No courses available yet
+            </h3>
+            <p className="mt-2 text-lg text-text-secondary">
+              Check back later for new courses
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {courses.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function CourseCard({ course }: { course: Course }) {
   return (
-    <Card className="flex flex-col overflow-hidden">
-      <div className="relative aspect-video bg-secondary-100">
+    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative aspect-video w-full bg-gray-200">
         {course.coverImg ? (
           <Image
             src={course.coverImg}
@@ -91,41 +102,50 @@ function CourseCard({ course }: { course: Course }) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <BookOpen className="h-12 w-12 text-secondary-300" />
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+            <span className="material-symbols-outlined text-5xl text-primary">
+              play_circle
+            </span>
           </div>
         )}
         {course.requiredRole && course.requiredRole !== "Member" && (
-          <span className="absolute right-2 top-2 rounded-full bg-primary-600 px-2 py-1 text-xs font-medium text-white">
+          <span
+            className={`absolute right-3 top-3 rounded-full px-3 py-1 text-sm font-bold ${
+              roleColors[course.requiredRole] || "bg-gray-100 text-gray-700"
+            }`}
+          >
             {course.requiredRole}
           </span>
         )}
       </div>
-      <CardHeader className="flex-1">
-        <CardTitle className="line-clamp-2 text-lg">{course.name}</CardTitle>
-        <p className="line-clamp-2 text-sm text-secondary-600">
-          {course.description}
-        </p>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center gap-4 text-sm text-secondary-600">
-          <span className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
+      <div className="flex flex-1 flex-col p-6">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="flex items-center gap-1 text-lg text-text-secondary">
+            <span className="material-symbols-outlined text-xl">menu_book</span>
             {course.lessonsCount} lessons
           </span>
           {course.averageRating > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              {course.averageRating.toFixed(1)}
-            </span>
+            <div className="flex items-center gap-1 text-yellow-500">
+              <span className="material-symbols-outlined text-lg">star</span>
+              <span className="text-sm font-bold text-text-main">
+                {course.averageRating.toFixed(1)}
+              </span>
+            </div>
           )}
         </div>
-      </CardContent>
-      <CardFooter>
-        <Link href={`/courses/${course.id}`} className="w-full">
-          <Button className="w-full">View Course</Button>
+        <h3 className="mb-2 text-2xl font-bold text-text-main transition-colors group-hover:text-primary">
+          {course.name}
+        </h3>
+        <p className="mb-6 flex-1 text-lg leading-normal text-text-secondary line-clamp-2">
+          {course.description}
+        </p>
+        <Link
+          href={`/courses/${course.id}`}
+          className="w-full rounded-xl border-2 border-primary/10 bg-primary/5 py-3 text-center text-lg font-bold text-primary transition-colors hover:bg-primary hover:text-white"
+        >
+          View Course
         </Link>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
 }

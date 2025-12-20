@@ -10,7 +10,7 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#3A7BD5",
+          DEFAULT: "#4a85d9",
           hover: "#2c62aa",
         },
         secondary: {
@@ -24,6 +24,7 @@ module.exports = {
           section: "#EEF2F7",
           dark: "#121820",
         },
+        "section-bg": "#EEF2F7",
         text: {
           main: "#1F2933",
           secondary: "#6B7280",

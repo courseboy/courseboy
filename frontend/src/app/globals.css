@@ -20,6 +20,12 @@
   }
 }
 
+/* Custom accessibility focus styles */
+*:focus-visible {
+  outline: 3px solid #f4a261;
+  outline-offset: 2px;
+}
+
 /* Material Symbols */
 .material-symbols-outlined {
   font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;

@@ -6,7 +6,7 @@ interface CreateCourseInput {
   name: string;
   description?: string;
   coverImg?: string;
-  requiredRoleId?: number;
+  requiredPrivilegeId?: number;
   certificateTemplateUrl?: string;
 }
 
@@ -28,7 +28,7 @@ export class CourseService {
         take,
         orderBy: { createdAt: "desc" },
         include: {
-          requiredRole: true,
+          requiredPrivilege: true,
           _count: {
             select: {
               lessons: true,
@@ -58,7 +58,7 @@ export class CourseService {
       name: course.name,
       description: course.description,
       coverImg: course.coverImg,
-      requiredRole: course.requiredRole?.name,
+      requiredPrivilege: course.requiredPrivilege?.name,
       lessonsCount: course._count.lessons,
       feedbacksCount: course._count.courseFeedbacks,
       averageRating: ratingsMap[course.id] || 0,
@@ -74,11 +74,11 @@ export class CourseService {
   /**
    * Get course by ID with full details
    */
-  async getById(courseId: number, userId?: number, userRoles?: string[]) {
+  async getById(courseId: number, userId?: number, userPrivileges?: string[]) {
     const course = await prisma.course.findUnique({
       where: { id: courseId },
       include: {
-        requiredRole: true,
+        requiredPrivilege: true,
         courseCategories: {
           orderBy: { orderIndex: "asc" },
           include: {
@@ -101,7 +101,7 @@ export class CourseService {
     }
 
     // Check access
-    const hasAccess = this.checkCourseAccess(course, userRoles);
+    const hasAccess = this.checkCourseAccess(course, userPrivileges);
 
     // Get average rating
     const avgRating = await prisma.courseFeedback.aggregate({
@@ -141,7 +141,7 @@ export class CourseService {
       description: course.description,
       coverImg: course.coverImg,
       isPublished: course.isPublished,
-      requiredRole: course.requiredRole?.name,
+      requiredPrivilege: course.requiredPrivilege?.name,
       certificateTemplateUrl: course.certificateTemplateUrl,
       averageRating: avgRating._avg.rating || 0,
       feedbacksCount: course._count.courseFeedbacks,
@@ -209,38 +209,39 @@ export class CourseService {
   }
 
   /**
-   * Check if user has access to course based on roles
+   * Check if user has access to course based on privileges
    */
   private checkCourseAccess(
-    course: { requiredRole: { name: string } | null },
-    userRoles?: string[]
+    course: { requiredPrivilege: { name: string } | null },
+    userPrivileges?: string[]
   ): boolean {
-    // No role required = public course
-    if (!course.requiredRole) {
+    // No privilege required = public course
+    if (!course.requiredPrivilege) {
       return true;
     }
 
     // Admin always has access
-    if (userRoles?.includes("Admin")) {
+    if (userPrivileges?.includes("Admin")) {
       return true;
     }
 
-    // Check if user has required role
-    if (!userRoles) {
+    // Check if user has required privilege
+    if (!userPrivileges) {
       return false;
     }
 
-    // Role hierarchy: SuperVIP > VIP > Member
-    const roleHierarchy: Record<string, number> = {
+    // Privilege hierarchy: SuperVIP > VIP > Member
+    const privilegeHierarchy: Record<string, number> = {
       Member: 1,
       VIP: 2,
       SuperVIP: 3,
       Admin: 4,
     };
 
-    const requiredLevel = roleHierarchy[course.requiredRole.name] || 0;
+    const requiredLevel =
+      privilegeHierarchy[course.requiredPrivilege.name] || 0;
     const userMaxLevel = Math.max(
-      ...userRoles.map((role) => roleHierarchy[role] || 0)
+      ...userPrivileges.map((privilege) => privilegeHierarchy[privilege] || 0)
     );
 
     return userMaxLevel >= requiredLevel;

@@ -12,23 +12,23 @@ CREATE TABLE "app_user" (
 );
 
 -- CreateTable
-CREATE TABLE "role" (
+CREATE TABLE "privilege" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "price" INTEGER,
 
-    CONSTRAINT "role_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "privilege_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "user_role" (
+CREATE TABLE "user_privilege" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "role_id" INTEGER NOT NULL,
+    "privilege_id" INTEGER NOT NULL,
     "create_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "user_role_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_privilege_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -46,7 +46,7 @@ CREATE TABLE "course" (
     "name" TEXT,
     "cover_img" TEXT,
     "description" TEXT,
-    "required_role_id" INTEGER,
+    "required_privilege_id" INTEGER,
     "is_published" BOOLEAN NOT NULL DEFAULT false,
     "certificate_template_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -144,10 +144,10 @@ CREATE TABLE "user_access" (
 CREATE UNIQUE INDEX "app_user_email_key" ON "app_user"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
+CREATE UNIQUE INDEX "privilege_name_key" ON "privilege"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_role_user_id_role_id_key" ON "user_role"("user_id", "role_id");
+CREATE UNIQUE INDEX "user_privilege_user_id_privilege_id_key" ON "user_privilege"("user_id", "privilege_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "certificate_certificate_code_key" ON "certificate"("certificate_code");
@@ -156,16 +156,16 @@ CREATE UNIQUE INDEX "certificate_certificate_code_key" ON "certificate"("certifi
 CREATE UNIQUE INDEX "user_access_user_id_lesson_id_key" ON "user_access"("user_id", "lesson_id");
 
 -- AddForeignKey
-ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "app_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_privilege" ADD CONSTRAINT "user_privilege_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "app_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_role" ADD CONSTRAINT "user_role_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_privilege" ADD CONSTRAINT "user_privilege_privilege_id_fkey" FOREIGN KEY ("privilege_id") REFERENCES "privilege"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_secret" ADD CONSTRAINT "user_secret_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "app_user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "course" ADD CONSTRAINT "course_required_role_id_fkey" FOREIGN KEY ("required_role_id") REFERENCES "role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "course" ADD CONSTRAINT "course_required_privilege_id_fkey" FOREIGN KEY ("required_privilege_id") REFERENCES "privilege"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "course_category" ADD CONSTRAINT "course_category_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "course"("id") ON DELETE CASCADE ON UPDATE CASCADE;

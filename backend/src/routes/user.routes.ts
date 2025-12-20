@@ -43,17 +43,17 @@ router.patch(
 );
 
 router.post(
-  "/:id/roles",
+  "/:id/privileges",
   authenticate,
   authorize("Admin"),
-  userController.assignRole
+  userController.assignPrivilege
 );
 
 router.delete(
-  "/:id/roles/:roleId",
+  "/:id/privileges/:privilegeId",
   authenticate,
   authorize("Admin"),
-  userController.removeRole
+  userController.removePrivilege
 );
 
 export default router;

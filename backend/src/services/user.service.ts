@@ -15,9 +15,9 @@ export class UserService {
     const user = await prisma.appUser.findUnique({
       where: { id: userId },
       include: {
-        userRoles: {
+        userPrivileges: {
           include: {
-            role: true,
+            privilege: true,
           },
         },
       },
@@ -32,7 +32,7 @@ export class UserService {
       email: user.email,
       username: user.username,
       isActive: user.isActive,
-      roles: user.userRoles.map((ur) => ur.role.name),
+      privileges: user.userPrivileges.map((up) => up.privilege.name),
       createdAt: user.createdAt,
       lastLogin: user.lastLogin,
     };
@@ -50,9 +50,9 @@ export class UserService {
         take,
         orderBy: { createdAt: "desc" },
         include: {
-          userRoles: {
+          userPrivileges: {
             include: {
-              role: true,
+              privilege: true,
             },
           },
         },
@@ -65,7 +65,7 @@ export class UserService {
       email: user.email,
       username: user.username,
       isActive: user.isActive,
-      roles: user.userRoles.map((ur) => ur.role.name),
+      privileges: user.userPrivileges.map((up) => up.privilege.name),
       createdAt: user.createdAt,
       lastLogin: user.lastLogin,
     }));
@@ -84,9 +84,9 @@ export class UserService {
       where: { id: userId },
       data: input,
       include: {
-        userRoles: {
+        userPrivileges: {
           include: {
-            role: true,
+            privilege: true,
           },
         },
       },
@@ -96,7 +96,7 @@ export class UserService {
       id: user.id,
       email: user.email,
       username: user.username,
-      roles: user.userRoles.map((ur) => ur.role.name),
+      privileges: user.userPrivileges.map((up) => up.privilege.name),
     };
   }
 
@@ -125,31 +125,31 @@ export class UserService {
   }
 
   /**
-   * Assign role to user
+   * Assign privilege to user
    */
-  async assignRole(userId: number, roleId: number) {
-    await prisma.userRole.create({
+  async assignPrivilege(userId: number, privilegeId: number) {
+    await prisma.userPrivilege.create({
       data: {
         userId,
-        roleId,
+        privilegeId,
       },
     });
 
-    return { message: "Role assigned successfully" };
+    return { message: "Privilege assigned successfully" };
   }
 
   /**
-   * Remove role from user
+   * Remove privilege from user
    */
-  async removeRole(userId: number, roleId: number) {
-    await prisma.userRole.deleteMany({
+  async removePrivilege(userId: number, privilegeId: number) {
+    await prisma.userPrivilege.deleteMany({
       where: {
         userId,
-        roleId,
+        privilegeId,
       },
     });
 
-    return { message: "Role removed successfully" };
+    return { message: "Privilege removed successfully" };
   }
 
   /**

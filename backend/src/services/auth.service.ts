@@ -22,7 +22,7 @@ interface LoginInput {
 interface TokenPayload {
   userId: number;
   email: string;
-  roles: string[];
+  privileges: string[];
 }
 
 interface AuthTokens {
@@ -65,16 +65,16 @@ export class AuthService {
         },
       });
 
-      // Assign default Member role
-      const memberRole = await tx.role.findUnique({
+      // Assign default Member privilege
+      const memberPrivilege = await tx.privilege.findUnique({
         where: { name: "Member" },
       });
 
-      if (memberRole) {
-        await tx.userRole.create({
+      if (memberPrivilege) {
+        await tx.userPrivilege.create({
           data: {
             userId: newUser.id,
-            roleId: memberRole.id,
+            privilegeId: memberPrivilege.id,
           },
         });
       }
@@ -86,7 +86,7 @@ export class AuthService {
     const tokens = this.generateTokens({
       userId: user.id,
       email: user.email,
-      roles: ["Member"],
+      privileges: ["Member"],
     });
 
     return {
@@ -108,9 +108,9 @@ export class AuthService {
       where: { email: input.email },
       include: {
         userSecret: true,
-        userRoles: {
+        userPrivileges: {
           include: {
-            role: true,
+            privilege: true,
           },
         },
       },
@@ -140,14 +140,14 @@ export class AuthService {
       data: { lastLogin: new Date() },
     });
 
-    // Get roles
-    const roles = user.userRoles.map((ur) => ur.role.name);
+    // Get privileges
+    const privileges = user.userPrivileges.map((up) => up.privilege.name);
 
     // Generate tokens
     const tokens = this.generateTokens({
       userId: user.id,
       email: user.email,
-      roles,
+      privileges,
     });
 
     return {
@@ -155,7 +155,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         username: user.username,
-        roles,
+        privileges,
       },
       ...tokens,
     };
@@ -175,9 +175,9 @@ export class AuthService {
       const user = await prisma.appUser.findUnique({
         where: { id: decoded.userId },
         include: {
-          userRoles: {
+          userPrivileges: {
             include: {
-              role: true,
+              privilege: true,
             },
           },
         },
@@ -187,13 +187,13 @@ export class AuthService {
         throw new UnauthorizedError("User not found or inactive");
       }
 
-      const roles = user.userRoles.map((ur) => ur.role.name);
+      const privileges = user.userPrivileges.map((up) => up.privilege.name);
 
       // Generate new tokens
       return this.generateTokens({
         userId: user.id,
         email: user.email,
-        roles,
+        privileges,
       });
     } catch (error) {
       throw new UnauthorizedError("Invalid refresh token");

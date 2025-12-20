@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Create roles
-  const memberRole = await prisma.role.upsert({
+  // Create privileges
+  const memberPrivilege = await prisma.privilege.upsert({
     where: { name: "Member" },
     update: {},
     create: {
@@ -17,7 +17,7 @@ async function main() {
     },
   });
 
-  const vipRole = await prisma.role.upsert({
+  const vipPrivilege = await prisma.privilege.upsert({
     where: { name: "VIP" },
     update: {},
     create: {
@@ -27,7 +27,7 @@ async function main() {
     },
   });
 
-  const superVipRole = await prisma.role.upsert({
+  const superVipPrivilege = await prisma.privilege.upsert({
     where: { name: "SuperVIP" },
     update: {},
     create: {
@@ -37,7 +37,7 @@ async function main() {
     },
   });
 
-  const adminRole = await prisma.role.upsert({
+  const adminPrivilege = await prisma.privilege.upsert({
     where: { name: "Admin" },
     update: {},
     create: {
@@ -47,7 +47,7 @@ async function main() {
     },
   });
 
-  console.log("✅ Roles created");
+  console.log("✅ Privileges created");
 
   // Create admin user
   const passwordHash = await bcrypt.hash("admin123", 12);
@@ -72,18 +72,18 @@ async function main() {
     },
   });
 
-  // Assign admin role
-  await prisma.userRole.upsert({
+  // Assign admin privilege
+  await prisma.userPrivilege.upsert({
     where: {
-      userId_roleId: {
+      userId_privilegeId: {
         userId: adminUser.id,
-        roleId: adminRole.id,
+        privilegeId: adminPrivilege.id,
       },
     },
     update: {},
     create: {
       userId: adminUser.id,
-      roleId: adminRole.id,
+      privilegeId: adminPrivilege.id,
     },
   });
 
@@ -98,7 +98,7 @@ async function main() {
       description: "Learn TypeScript from scratch with hands-on examples",
       coverImg: "/images/courses/typescript-cover.jpg",
       isPublished: true,
-      requiredRoleId: memberRole.id,
+      requiredPrivilegeId: memberPrivilege.id,
     },
   });
 

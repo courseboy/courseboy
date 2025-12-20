@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { authApi } from "@/lib/api";
+import { useState, useEffect } from "react";
 
 interface User {
   userId: number;
@@ -16,11 +17,6 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    username: string,
-    password: string
-  ) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
@@ -48,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
               userId: user.id,
               email: user.email,
               username: user.username,
-              roles: user.roles,
+              roles: user.privileges || [], // Backend returns 'privileges' not 'roles'
             },
             isAuthenticated: true,
             isLoading: false,
@@ -56,38 +52,6 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({
             error: error.response?.data?.message || "Login failed",
-            isLoading: false,
-          });
-          throw error;
-        }
-      },
-
-      register: async (email: string, username: string, password: string) => {
-        set({ isLoading: true, error: null });
-        try {
-          const response = await authApi.register({
-            email,
-            username,
-            password,
-          });
-          const { user, accessToken, refreshToken } = response.data.data;
-
-          Cookies.set("accessToken", accessToken, { expires: 7 });
-          Cookies.set("refreshToken", refreshToken, { expires: 30 });
-
-          set({
-            user: {
-              userId: user.id,
-              email: user.email,
-              username: user.username,
-              roles: ["Member"],
-            },
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } catch (error: any) {
-          set({
-            error: error.response?.data?.message || "Registration failed",
             isLoading: false,
           });
           throw error;
@@ -114,9 +78,14 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await authApi.me();
-          const user = response.data.data;
+          const userData = response.data.data;
           set({
-            user,
+            user: {
+              userId: userData.userId,
+              email: userData.email,
+              username: userData.username,
+              roles: userData.privileges || [], // Backend returns 'privileges' not 'roles'
+            },
             isAuthenticated: true,
           });
         } catch (error) {
@@ -137,3 +106,26 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Hook to handle hydration - prevents hydration mismatch
+export const useAuthHydration = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // Wait for Zustand to rehydrate from localStorage
+    const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
+      setHydrated(true);
+    });
+
+    // Check if already hydrated
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+    }
+
+    return () => {
+      unsubFinishHydration();
+    };
+  }, []);
+
+  return hydrated;
+};

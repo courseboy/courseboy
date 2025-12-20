@@ -2,80 +2,69 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t bg-secondary-50">
-      <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-4">
-          <div>
-            <h3 className="mb-4 text-lg font-bold text-primary-600">
-              CourseBoy
-            </h3>
-            <p className="text-sm text-secondary-600">
-              Learn skills that matter. Access quality education from anywhere.
+    <footer className="w-full border-t border-gray-100 bg-white py-12">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+          {/* Brand */}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-4xl text-primary">
+                school
+              </span>
+              <span className="text-2xl font-bold text-text-main">
+                SeniorLearn
+              </span>
+            </div>
+            <p className="max-w-xs text-lg text-text-secondary">
+              Making technology and learning accessible for everyone, at any
+              age.
             </p>
           </div>
 
-          <div>
-            <h4 className="mb-4 font-semibold">Learn</h4>
-            <ul className="space-y-2 text-sm text-secondary-600">
-              <li>
-                <Link href="/courses" className="hover:text-primary-600">
-                  All Courses
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-primary-600">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/certificates" className="hover:text-primary-600">
-                  Certificates
-                </Link>
-              </li>
-            </ul>
+          {/* Help Section */}
+          <div className="flex flex-col gap-4">
+            <h4 className="text-xl font-bold text-text-main">Need Help?</h4>
+            <a
+              className="flex items-center gap-3 text-2xl font-bold text-primary hover:underline"
+              href="tel:02-123-4567"
+            >
+              <span className="material-symbols-outlined">call</span>
+              02-123-4567
+            </a>
+            <p className="text-lg text-text-secondary">
+              Daily 8:00 AM - 6:00 PM
+            </p>
           </div>
 
-          <div>
-            <h4 className="mb-4 font-semibold">Company</h4>
-            <ul className="space-y-2 text-sm text-secondary-600">
-              <li>
-                <Link href="/about" className="hover:text-primary-600">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-primary-600">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="hover:text-primary-600">
-                  Careers
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-4 font-semibold">Legal</h4>
-            <ul className="space-y-2 text-sm text-secondary-600">
-              <li>
-                <Link href="/privacy" className="hover:text-primary-600">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-primary-600">
-                  Terms of Service
-                </Link>
-              </li>
-            </ul>
+          {/* Quick Links */}
+          <div className="flex flex-col gap-4">
+            <h4 className="text-xl font-bold text-text-main">Quick Links</h4>
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/about"
+                className="text-lg text-text-secondary hover:text-primary"
+              >
+                About Us
+              </Link>
+              <Link
+                href="/contact"
+                className="text-lg text-text-secondary hover:text-primary"
+              >
+                Contact
+              </Link>
+              <Link
+                href="/privacy"
+                className="text-lg text-text-secondary hover:text-primary"
+              >
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="mt-12 border-t pt-8 text-center text-sm text-secondary-600">
-          <p>
-            &copy; {new Date().getFullYear()} CourseBoy. All rights reserved.
+        <div className="mt-12 border-t border-gray-100 pt-8 text-center md:text-left">
+          <p className="text-base text-text-secondary">
+            © {new Date().getFullYear()} SeniorLearn. All rights reserved.
           </p>
         </div>
       </div>

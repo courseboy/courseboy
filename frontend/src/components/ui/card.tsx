@@ -8,7 +8,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md",
+        "overflow-hidden rounded-2xl bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-xl",
         className
       )}
       {...props}
@@ -49,7 +49,7 @@ const CardDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-secondary-600", className)}
+    className={cn("text-lg leading-normal text-text-secondary", className)}
     {...props}
   />
 ));

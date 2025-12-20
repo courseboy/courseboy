@@ -11,11 +11,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-secondary-700"
+            className="block text-lg font-medium text-text-main"
           >
             {label}
           </label>
@@ -24,10 +24,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           type={type}
           id={inputId}
           className={cn(
-            "flex h-10 w-full rounded-lg border border-secondary-300 bg-white px-3 py-2 text-sm",
-            "placeholder:text-secondary-400",
-            "focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20",
+            "flex h-14 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-lg text-text-main",
+            "placeholder:text-text-secondary",
+            "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
             "disabled:cursor-not-allowed disabled:opacity-50",
+            "transition-colors",
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500/20",
             className
@@ -35,7 +36,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-base text-red-600">{error}</p>}
       </div>
     );
   }

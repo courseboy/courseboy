@@ -1,126 +1,146 @@
 "use client";
 
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store/auth";
-import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { useState } from "react";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const hydrated = useAuthHydration();
+
+  // Don't render auth-dependent UI until hydrated to prevent mismatch
+  const showAuthenticated = hydrated && isAuthenticated;
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white">
-      <nav className="container flex h-16 items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-6 lg:px-10">
         {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-primary-600">
-          CourseBoy
+        <Link href="/" className="flex items-center gap-4">
+          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-3xl">school</span>
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-text-main">
+            SeniorLearn
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-8 md:flex">
+          <Link
+            href="/"
+            className="text-lg font-medium text-text-main transition-colors hover:text-primary"
+          >
+            Home
+          </Link>
           <Link
             href="/courses"
-            className="text-secondary-600 hover:text-primary-600"
+            className="text-lg font-medium text-text-secondary transition-colors hover:text-primary"
           >
-            Courses
+            All Courses
           </Link>
-          {isAuthenticated ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="text-secondary-600 hover:text-primary-600"
-              >
-                Dashboard
-              </Link>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-secondary-600">
-                  {user?.username || user?.email}
-                </span>
-                <Button variant="ghost" size="sm" onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button>Sign Up</Button>
-              </Link>
-            </div>
-          )}
+          <Link
+            href="/help"
+            className="text-lg font-medium text-text-secondary transition-colors hover:text-primary"
+          >
+            Help
+          </Link>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
+        {/* Right side buttons */}
+        <div className="flex items-center gap-4">
+          {showAuthenticated ? (
+            <>
+              <Link
+                href="/my-courses"
+                className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
+              >
+                My Courses
+              </Link>
+              <button
+                onClick={logout}
+                className="hidden items-center gap-2 text-lg font-medium text-text-secondary transition-colors hover:text-primary md:flex"
+              >
+                <span className="material-symbols-outlined">logout</span>
+              </button>
+            </>
           ) : (
-            <Menu className="h-6 w-6" />
+            <Link
+              href="/login"
+              className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
+            >
+              Login
+            </Link>
           )}
-        </button>
-      </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="flex size-12 items-center justify-center rounded-full text-text-main hover:bg-gray-100 md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <span className="material-symbols-outlined text-3xl">
+              {mobileMenuOpen ? "close" : "menu"}
+            </span>
+          </button>
+        </div>
+      </div>
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="border-t bg-white md:hidden">
-          <div className="container py-4">
-            <div className="flex flex-col gap-4">
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <div className="flex flex-col gap-2 px-6 py-4">
+            <Link
+              href="/"
+              className="rounded-lg px-4 py-3 text-lg font-medium text-text-main hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              href="/courses"
+              className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              All Courses
+            </Link>
+            <Link
+              href="/help"
+              className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Help
+            </Link>
+            {showAuthenticated ? (
+              <>
+                <Link
+                  href="/my-courses"
+                  className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Courses
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="rounded-lg px-4 py-3 text-left text-lg font-medium text-red-600 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
               <Link
-                href="/courses"
-                className="text-secondary-600 hover:text-primary-600"
+                href="/login"
+                className="mt-2 flex h-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Courses
+                Login
               </Link>
-              {isAuthenticated ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="text-secondary-600 hover:text-primary-600"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button className="w-full">Sign Up</Button>
-                  </Link>
-                </>
-              )}
-            </div>
+            )}
           </div>
         </div>
       )}
-    </header>
+    </nav>
   );
 }

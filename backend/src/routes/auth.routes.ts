@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
   authController,
-  registerSchema,
   loginSchema,
   changePasswordSchema,
 } from "../controllers/auth.controller.js";
@@ -12,13 +11,6 @@ import { authLimiter } from "../middleware/rateLimiter.js";
 const router = Router();
 
 // Public routes
-router.post(
-  "/register",
-  authLimiter,
-  validateZod(registerSchema),
-  authController.register
-);
-
 router.post(
   "/login",
   authLimiter,

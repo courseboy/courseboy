@@ -146,37 +146,56 @@ export default function CourseDetailPage() {
                   </div>
                   <div className="p-4">
                     <ul className="space-y-2">
-                      {category.lessons.map((lesson: any) => (
-                        <li
-                          key={lesson.id}
-                          className="flex items-center justify-between rounded-xl p-4 transition-colors hover:bg-gray-50"
-                        >
-                          <div className="flex items-center gap-3">
-                            {lesson.isFreePreview || course.hasAccess ? (
-                              <span className="material-symbols-outlined text-2xl text-primary">
-                                play_circle
+                      {category.lessons.map((lesson: any) => {
+                        const canAccess =
+                          lesson.isFreePreview || course.hasAccess;
+                        const lessonContent = (
+                          <>
+                            <div className="flex items-center gap-3">
+                              {canAccess ? (
+                                <span className="material-symbols-outlined text-2xl text-primary">
+                                  play_circle
+                                </span>
+                              ) : (
+                                <span className="material-symbols-outlined text-2xl text-text-secondary">
+                                  lock
+                                </span>
+                              )}
+                              <span className="text-lg text-text-main">
+                                {lesson.title}
                               </span>
-                            ) : (
-                              <span className="material-symbols-outlined text-2xl text-text-secondary">
-                                lock
+                              {lesson.isFreePreview && (
+                                <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
+                                  Free Preview
+                                </span>
+                              )}
+                            </div>
+                            {lesson.durationSeconds && (
+                              <span className="text-base text-text-secondary">
+                                {formatDuration(lesson.durationSeconds)}
                               </span>
                             )}
-                            <span className="text-lg text-text-main">
-                              {lesson.title}
-                            </span>
-                            {lesson.isFreePreview && (
-                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
-                                Free Preview
-                              </span>
-                            )}
-                          </div>
-                          {lesson.durationSeconds && (
-                            <span className="text-base text-text-secondary">
-                              {formatDuration(lesson.durationSeconds)}
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                          </>
+                        );
+
+                        return canAccess ? (
+                          <li key={lesson.id}>
+                            <Link
+                              href={`/courses/${courseId}/learn?lesson=${lesson.id}`}
+                              className="flex items-center justify-between rounded-xl p-4 transition-colors hover:bg-primary/5"
+                            >
+                              {lessonContent}
+                            </Link>
+                          </li>
+                        ) : (
+                          <li
+                            key={lesson.id}
+                            className="flex cursor-not-allowed items-center justify-between rounded-xl p-4 opacity-60"
+                          >
+                            {lessonContent}
+                          </li>
+                        );
+                      })}
                     </ul>
 
                     {category.quizzes?.length > 0 && (
@@ -238,9 +257,12 @@ export default function CourseDetailPage() {
                     </span>
                     <span className="text-xl font-bold">You have access</span>
                   </div>
-                  <button className="flex h-14 w-full items-center justify-center rounded-xl bg-primary text-xl font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-primary-hover">
+                  <Link
+                    href={`/courses/${courseId}/learn`}
+                    className="flex h-14 w-full items-center justify-center rounded-xl bg-primary text-xl font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-primary-hover"
+                  >
                     Continue Learning
-                  </button>
+                  </Link>
                 </>
               )}
             </div>

@@ -278,7 +278,7 @@ function CourseCard({
           {/* Action Button */}
           {status === "in-progress" && (
             <Link
-              href={`/courses/${course.courseId}`}
+              href={`/courses/${course.courseId}/learn`}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-lg font-bold text-white shadow-md transition-colors hover:bg-blue-600"
             >
               <span className="material-symbols-outlined">play_arrow</span>
@@ -288,7 +288,7 @@ function CourseCard({
 
           {status === "not-started" && (
             <Link
-              href={`/courses/${course.courseId}`}
+              href={`/courses/${course.courseId}/learn`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-primary bg-white py-3 text-lg font-bold text-primary shadow-sm transition-colors hover:bg-primary hover:text-white"
             >
               <span className="material-symbols-outlined">school</span>
@@ -298,7 +298,7 @@ function CourseCard({
 
           {status === "completed" && (
             <Link
-              href={`/courses/${course.courseId}`}
+              href={`/courses/${course.courseId}/learn`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white py-3 text-lg font-medium text-text-main shadow-sm transition-colors hover:bg-slate-50"
             >
               <span className="material-symbols-outlined">replay</span>

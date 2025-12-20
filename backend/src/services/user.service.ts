@@ -228,27 +228,46 @@ export class UserService {
   }
 
   /**
-   * Get user's enrolled courses progress
+   * Get user's courses based on their privileges and progress
    */
   async getUserProgress(userId: number) {
-    const progress = await prisma.userAccess.findMany({
+    // Get user's privileges
+    const userPrivileges = await prisma.userPrivilege.findMany({
       where: { userId },
+      include: { privilege: true },
+    });
+
+    const privilegeIds = userPrivileges.map((up) => up.privilegeId);
+
+    // Get all courses the user has access to (via privileges or no privilege required)
+    const accessibleCourses = await prisma.course.findMany({
+      where: {
+        isPublished: true,
+        OR: [
+          { requiredPrivilegeId: null }, // No privilege required
+          { requiredPrivilegeId: { in: privilegeIds } }, // User has required privilege
+        ],
+      },
       include: {
-        lesson: {
-          include: {
-            course: true,
-          },
+        _count: {
+          select: { lessons: true },
         },
       },
     });
 
-    // Group by course
-    const courseProgress = progress.reduce((acc, access) => {
+    // Get user's watch progress for all lessons
+    const userAccess = await prisma.userAccess.findMany({
+      where: { userId },
+      include: {
+        lesson: true,
+      },
+    });
+
+    // Group progress by course
+    const progressByCourse = userAccess.reduce((acc, access) => {
       const courseId = access.lesson.courseId;
       if (!acc[courseId]) {
         acc[courseId] = {
-          courseId,
-          courseName: access.lesson.course.name,
           completedLessons: 0,
           totalWatchedSeconds: 0,
         };
@@ -258,9 +277,34 @@ export class UserService {
       }
       acc[courseId].totalWatchedSeconds += access.watchedSeconds;
       return acc;
-    }, {} as Record<number, { courseId: number; courseName: string | null; completedLessons: number; totalWatchedSeconds: number }>);
+    }, {} as Record<number, { completedLessons: number; totalWatchedSeconds: number }>);
 
-    return Object.values(courseProgress);
+    // Combine course info with progress
+    const result = accessibleCourses.map((course) => {
+      const progress = progressByCourse[course.id] || {
+        completedLessons: 0,
+        totalWatchedSeconds: 0,
+      };
+      const totalLessons = course._count.lessons;
+      const percentage =
+        totalLessons > 0
+          ? Math.round((progress.completedLessons / totalLessons) * 100)
+          : 0;
+
+      return {
+        courseId: course.id,
+        courseName: course.name,
+        coverImg: course.coverImg,
+        description: course.description,
+        completedLessons: progress.completedLessons,
+        totalLessons,
+        totalWatchedSeconds: progress.totalWatchedSeconds,
+        percentage,
+        isNew: progress.completedLessons === 0,
+      };
+    });
+
+    return result;
   }
 
   /**

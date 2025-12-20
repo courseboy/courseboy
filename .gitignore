@@ -39,3 +39,5 @@ docker-data/
 # Misc
 *.pem
 *.key
+
+sample_html/

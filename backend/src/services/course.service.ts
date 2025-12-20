@@ -14,7 +14,187 @@ interface UpdateCourseInput extends Partial<CreateCourseInput> {
   isPublished?: boolean;
 }
 
+interface CreateCategoryInput {
+  name: string;
+  orderIndex?: number;
+}
+
+interface UpdateCategoryInput {
+  name?: string;
+  orderIndex?: number;
+}
+
 export class CourseService {
+  /**
+   * Get all courses (admin) - including unpublished
+   */
+  async getAllForAdmin(page: number = 1, limit: number = 10) {
+    const { skip, take } = paginate(page, limit);
+
+    const [courses, total] = await Promise.all([
+      prisma.course.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: "desc" },
+        include: {
+          requiredPrivilege: true,
+          courseCategories: {
+            orderBy: { orderIndex: "asc" },
+            include: {
+              lessons: {
+                orderBy: { orderIndex: "asc" },
+              },
+            },
+          },
+          _count: {
+            select: {
+              lessons: true,
+              courseFeedbacks: true,
+            },
+          },
+        },
+      }),
+      prisma.course.count(),
+    ]);
+
+    // Calculate total duration for each course
+    const formattedCourses = courses.map((course) => {
+      const totalDuration = course.courseCategories.reduce((sum, cat) => {
+        return (
+          sum +
+          cat.lessons.reduce((lessonSum, lesson) => {
+            return lessonSum + (lesson.durationSeconds || 0);
+          }, 0)
+        );
+      }, 0);
+
+      return {
+        id: course.id,
+        name: course.name,
+        description: course.description,
+        coverImg: course.coverImg,
+        isPublished: course.isPublished,
+        requiredPrivilege: course.requiredPrivilege?.name,
+        requiredPrivilegeId: course.requiredPrivilegeId,
+        lessonsCount: course._count.lessons,
+        categoriesCount: course.courseCategories.length,
+        totalDurationSeconds: totalDuration,
+        categories: course.courseCategories.map((cat) => ({
+          id: cat.id,
+          name: cat.name,
+          orderIndex: cat.orderIndex,
+          lessonsCount: cat.lessons.length,
+          lessons: cat.lessons.map((lesson) => ({
+            id: lesson.id,
+            title: lesson.title,
+            videoUrl: lesson.videoUrl,
+            durationSeconds: lesson.durationSeconds,
+            isFreePreview: lesson.isFreePreview,
+            orderIndex: lesson.orderIndex,
+          })),
+        })),
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt,
+      };
+    });
+
+    return {
+      data: formattedCourses,
+      meta: paginationMeta(total, page, limit),
+    };
+  }
+
+  /**
+   * Create category for a course (admin)
+   */
+  async createCategory(courseId: number, input: CreateCategoryInput) {
+    // Verify course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundError("Course not found");
+    }
+
+    // Get next order index if not provided
+    let orderIndex = input.orderIndex;
+    if (orderIndex === undefined) {
+      const lastCategory = await prisma.courseCategory.findFirst({
+        where: { courseId },
+        orderBy: { orderIndex: "desc" },
+      });
+      orderIndex = (lastCategory?.orderIndex ?? 0) + 1;
+    }
+
+    const category = await prisma.courseCategory.create({
+      data: {
+        courseId,
+        name: input.name,
+        orderIndex,
+      },
+    });
+
+    return category;
+  }
+
+  /**
+   * Update category (admin)
+   */
+  async updateCategory(categoryId: number, input: UpdateCategoryInput) {
+    const category = await prisma.courseCategory.update({
+      where: { id: categoryId },
+      data: input,
+    });
+
+    return category;
+  }
+
+  /**
+   * Delete category (admin)
+   */
+  async deleteCategory(categoryId: number) {
+    await prisma.courseCategory.delete({
+      where: { id: categoryId },
+    });
+
+    return { message: "Category deleted successfully" };
+  }
+
+  /**
+   * Reorder categories (admin)
+   */
+  async reorderCategories(courseId: number, categoryIds: number[]) {
+    // Update order index for each category
+    await Promise.all(
+      categoryIds.map((id, index) =>
+        prisma.courseCategory.update({
+          where: { id },
+          data: { orderIndex: index + 1 },
+        })
+      )
+    );
+
+    return { message: "Categories reordered successfully" };
+  }
+
+  /**
+   * Reorder lessons in a category (admin)
+   */
+  async reorderLessons(categoryId: number, lessonIds: number[]) {
+    // Update order index for each lesson
+    await Promise.all(
+      lessonIds.map((id, index) =>
+        prisma.lesson.update({
+          where: { id },
+          data: { orderIndex: index + 1 },
+        })
+      )
+    );
+
+    return { message: "Lessons reordered successfully" };
+  }
+
   /**
    * Get all published courses
    */

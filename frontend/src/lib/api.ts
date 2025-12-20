@@ -130,4 +130,67 @@ export const adminUserApi = {
     api.put(`/users/${id}/privileges`, { privilegeIds }),
 };
 
+// Admin Course Management API
+export const adminCourseApi = {
+  getAll: (page = 1, limit = 50) =>
+    api.get(`/courses/admin/all?page=${page}&limit=${limit}`),
+  getById: (id: number) => api.get(`/courses/${id}`),
+  create: (data: {
+    name: string;
+    description?: string;
+    coverImg?: string;
+    requiredPrivilegeId?: number;
+    isPublished?: boolean;
+  }) => api.post("/courses", data),
+  update: (
+    id: number,
+    data: {
+      name?: string;
+      description?: string;
+      coverImg?: string;
+      requiredPrivilegeId?: number | null;
+      isPublished?: boolean;
+    }
+  ) => api.patch(`/courses/${id}`, data),
+  delete: (id: number) => api.delete(`/courses/${id}`),
+
+  // Category management
+  createCategory: (courseId: number, data: { name: string }) =>
+    api.post(`/courses/${courseId}/categories`, data),
+  updateCategory: (categoryId: number, data: { name?: string }) =>
+    api.patch(`/courses/categories/${categoryId}`, data),
+  deleteCategory: (categoryId: number) =>
+    api.delete(`/courses/categories/${categoryId}`),
+  reorderCategories: (courseId: number, categoryIds: number[]) =>
+    api.put(`/courses/${courseId}/categories/reorder`, { categoryIds }),
+
+  // Lesson management
+  createLesson: (
+    courseId: number,
+    categoryId: number,
+    data: {
+      title: string;
+      videoUrl?: string;
+      durationSeconds?: number;
+      isFreePreview?: boolean;
+    }
+  ) =>
+    api.post(
+      `/lessons/courses/${courseId}/categories/${categoryId}/lessons`,
+      data
+    ),
+  updateLesson: (
+    lessonId: number,
+    data: {
+      title?: string;
+      videoUrl?: string;
+      durationSeconds?: number;
+      isFreePreview?: boolean;
+    }
+  ) => api.patch(`/lessons/${lessonId}`, data),
+  deleteLesson: (lessonId: number) => api.delete(`/lessons/${lessonId}`),
+  reorderLessons: (categoryId: number, lessonIds: number[]) =>
+    api.put(`/courses/categories/${categoryId}/lessons/reorder`, { lessonIds }),
+};
+
 export default api;

@@ -136,6 +136,40 @@ export interface EditUserFormData {
   privilegeIds: number[];
 }
 
+// Admin Course types
+export interface AdminCourse {
+  id: number;
+  name: string | null;
+  description: string | null;
+  coverImg: string | null;
+  isPublished: boolean;
+  requiredPrivilege: string | null;
+  requiredPrivilegeId: number | null;
+  lessonsCount: number;
+  categoriesCount: number;
+  totalDurationSeconds: number;
+  categories: AdminCategory[];
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface AdminCategory {
+  id: number;
+  name: string;
+  orderIndex: number;
+  lessonsCount: number;
+  lessons: AdminLesson[];
+}
+
+export interface AdminLesson {
+  id: number;
+  title: string;
+  videoUrl: string | null;
+  durationSeconds: number | null;
+  isFreePreview: boolean;
+  orderIndex: number;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean;

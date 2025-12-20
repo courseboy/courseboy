@@ -299,7 +299,10 @@ export class UserService {
   /**
    * Update user by admin
    */
-  async adminUpdate(userId: number, input: { username?: string; email?: string; isActive?: boolean }) {
+  async adminUpdate(
+    userId: number,
+    input: { username?: string; email?: string; isActive?: boolean }
+  ) {
     const user = await prisma.appUser.update({
       where: { id: userId },
       data: input,

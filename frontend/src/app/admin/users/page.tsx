@@ -50,7 +50,7 @@ export default function UserManagementPage() {
 
   const handleDeactivate = async (userId: number) => {
     if (!confirm("Are you sure you want to deactivate this user?")) return;
-    
+
     try {
       setActionLoading(userId);
       await adminUserApi.deactivate(userId);
@@ -98,8 +98,7 @@ export default function UserManagementPage() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesRole =
-      roleFilter === "all" ||
-      user.privileges.includes(roleFilter);
+      roleFilter === "all" || user.privileges.includes(roleFilter);
 
     return matchesSearch && matchesRole;
   });
@@ -318,22 +317,25 @@ export default function UserManagementPage() {
               chevron_left
             </span>
           </button>
-          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                onClick={() => setCurrentPage(pageNum)}
-                className={`size-9 flex items-center justify-center rounded-lg font-bold text-sm transition-colors ${
-                  currentPage === pageNum
-                    ? "bg-[#3A7BD5] text-white shadow-md shadow-[#3A7BD5]/30"
-                    : "border border-slate-200 text-[#6B7280] hover:bg-white hover:text-[#1F2933]"
-                }`}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
+          {Array.from(
+            { length: Math.min(5, pagination.totalPages) },
+            (_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`size-9 flex items-center justify-center rounded-lg font-bold text-sm transition-colors ${
+                    currentPage === pageNum
+                      ? "bg-[#3A7BD5] text-white shadow-md shadow-[#3A7BD5]/30"
+                      : "border border-slate-200 text-[#6B7280] hover:bg-white hover:text-[#1F2933]"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            }
+          )}
           <button
             onClick={() =>
               setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))

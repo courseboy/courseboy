@@ -40,15 +40,16 @@ export function AddUserModal({
         email,
         username: username || undefined,
         password,
-        privilegeIds: selectedPrivileges.length > 0 ? selectedPrivileges : undefined,
+        privilegeIds:
+          selectedPrivileges.length > 0 ? selectedPrivileges : undefined,
       });
-      
+
       // Reset form
       setEmail("");
       setUsername("");
       setPassword("");
       setSelectedPrivileges([]);
-      
+
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create user");
@@ -79,10 +80,7 @@ export function AddUserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-      ></div>
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose}></div>
 
       {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -152,7 +150,8 @@ export function AddUserModal({
                 Privileges
               </span>
               <p className="text-xs text-[#6B7280]">
-                If no privilege is selected, &quot;Member&quot; will be assigned by default.
+                If no privilege is selected, &quot;Member&quot; will be assigned
+                by default.
               </p>
               <div className="flex flex-col gap-2 mt-1">
                 {privileges.map((privilege) => (
@@ -171,7 +170,9 @@ export function AddUserModal({
                       className="text-[#3A7BD5] focus:ring-[#3A7BD5] rounded"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{privilege.name}</span>
+                      <span className="text-sm font-medium">
+                        {privilege.name}
+                      </span>
                       {privilege.description && (
                         <span className="text-xs text-[#6B7280]">
                           {privilege.description}

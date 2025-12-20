@@ -30,7 +30,7 @@ export function EditUserModal({
   useEffect(() => {
     setEmail(user.email);
     setUsername(user.username || "");
-    
+
     // Map privilege names to IDs
     const privilegeIds = privileges
       .filter((p) => user.privileges.includes(p.name))
@@ -49,16 +49,16 @@ export function EditUserModal({
 
     try {
       setLoading(true);
-      
+
       // Update user details
       await adminUserApi.update(user.id, {
         email,
         username: username || undefined,
       });
-      
+
       // Update privileges
       await adminUserApi.updatePrivileges(user.id, selectedPrivileges);
-      
+
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to update user");
@@ -85,10 +85,7 @@ export function EditUserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-      ></div>
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose}></div>
 
       {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -159,7 +156,9 @@ export function EditUserModal({
                       className="text-[#3A7BD5] focus:ring-[#3A7BD5] rounded"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{privilege.name}</span>
+                      <span className="text-sm font-medium">
+                        {privilege.name}
+                      </span>
                       {privilege.description && (
                         <span className="text-xs text-[#6B7280]">
                           {privilege.description}

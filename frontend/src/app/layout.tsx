@@ -28,9 +28,9 @@ export default function RootLayout({
       </head>
       <body className={lexend.className}>
         <Providers>
-          <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+          <div className="relative flex min-h-screen w-full flex-col">
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 overflow-x-hidden">{children}</main>
             <Footer />
           </div>
         </Providers>

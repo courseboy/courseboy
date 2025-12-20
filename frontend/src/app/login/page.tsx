@@ -96,15 +96,6 @@ export default function LoginPage() {
                   (เข้าสู่ระบบ)
                 </span>
               </button>
-              <Link
-                href="/register"
-                className="relative pb-3 text-text-secondary hover:text-text-main font-medium text-lg flex items-center gap-2 transition-all border-b-[3px] border-transparent"
-              >
-                Register
-                <span className="text-sm font-normal text-text-secondary opacity-70">
-                  (ลงทะเบียน)
-                </span>
-              </Link>
             </div>
           </div>
 
@@ -258,19 +249,6 @@ export default function LoginPage() {
               </svg>
               Line
             </button>
-          </div>
-
-          {/* Mobile only Register CTA */}
-          <div className="mt-8 text-center lg:hidden">
-            <p className="text-text-main">
-              Don&apos;t have an account?{" "}
-              <Link
-                className="text-primary font-bold hover:underline"
-                href="/register"
-              >
-                Register now
-              </Link>
-            </p>
           </div>
         </div>
       </div>

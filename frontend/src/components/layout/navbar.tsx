@@ -61,20 +61,12 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="hidden text-lg font-medium text-text-secondary transition-colors hover:text-primary md:block"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
-              >
-                Sign Up
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
+            >
+              Login
+            </Link>
           )}
 
           {/* Mobile Menu Button */}
@@ -134,22 +126,13 @@ export function Navbar() {
                 </button>
               </>
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="mt-2 flex h-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-white"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </>
+              <Link
+                href="/login"
+                className="mt-2 flex h-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-white"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
             )}
           </div>
         </div>

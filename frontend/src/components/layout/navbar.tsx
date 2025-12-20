@@ -51,6 +51,17 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {showAuthenticated ? (
             <>
+              {user?.roles?.includes("Admin") && (
+                <Link
+                  href="/admin"
+                  className="hidden items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 md:flex"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    admin_panel_settings
+                  </span>
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/my-courses"
                 className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
@@ -112,6 +123,18 @@ export function Navbar() {
             </Link>
             {showAuthenticated ? (
               <>
+                {user?.roles?.includes("Admin") && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-3 text-lg font-medium text-slate-700 hover:bg-slate-200"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span className="material-symbols-outlined">
+                      admin_panel_settings
+                    </span>
+                    Admin Panel
+                  </Link>
+                )}
                 <Link
                   href="/my-courses"
                   className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"

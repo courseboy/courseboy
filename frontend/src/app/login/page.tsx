@@ -32,7 +32,10 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     try {
       await login(data.email, data.password);
+      // Small delay to ensure state is persisted before redirect
+      await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
+      router.refresh(); // Force refresh to update server components
     } catch (error) {
       // Error is handled by store
     }

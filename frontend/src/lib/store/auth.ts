@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Cookies from "js-cookie";
 import { authApi } from "@/lib/api";
+import { useState, useEffect } from "react";
 
 interface User {
   userId: number;
@@ -43,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
               userId: user.id,
               email: user.email,
               username: user.username,
-              roles: user.roles,
+              roles: user.privileges || [], // Backend returns 'privileges' not 'roles'
             },
             isAuthenticated: true,
             isLoading: false,
@@ -77,9 +78,14 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await authApi.me();
-          const user = response.data.data;
+          const userData = response.data.data;
           set({
-            user,
+            user: {
+              userId: userData.userId,
+              email: userData.email,
+              username: userData.username,
+              roles: userData.privileges || [], // Backend returns 'privileges' not 'roles'
+            },
             isAuthenticated: true,
           });
         } catch (error) {
@@ -100,3 +106,26 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Hook to handle hydration - prevents hydration mismatch
+export const useAuthHydration = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // Wait for Zustand to rehydrate from localStorage
+    const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
+      setHydrated(true);
+    });
+
+    // Check if already hydrated
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+    }
+
+    return () => {
+      unsubFinishHydration();
+    };
+  }, []);
+
+  return hydrated;
+};

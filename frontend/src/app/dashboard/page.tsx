@@ -3,24 +3,22 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store/auth";
+import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { userApi } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/spinner";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const hydrated = useAuthHydration();
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
+    // Only redirect after hydration is complete
+    if (hydrated && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, router]);
 
   const { data: progressData, isLoading } = useQuery({
     queryKey: ["userProgress"],
@@ -28,10 +26,11 @@ export default function DashboardPage() {
       const response = await userApi.getProgress();
       return response.data.data;
     },
-    enabled: isAuthenticated,
+    enabled: hydrated && isAuthenticated,
   });
 
-  if (!isAuthenticated || isLoading) {
+  // Show loading until hydrated and authenticated
+  if (!hydrated || !isAuthenticated || isLoading) {
     return <LoadingScreen />;
   }
 

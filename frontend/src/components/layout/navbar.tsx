@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store/auth";
+import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { useState } from "react";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const hydrated = useAuthHydration();
+
+  // Don't render auth-dependent UI until hydrated to prevent mismatch
+  const showAuthenticated = hydrated && isAuthenticated;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
@@ -45,10 +49,10 @@ export function Navbar() {
 
         {/* Right side buttons */}
         <div className="flex items-center gap-4">
-          {isAuthenticated ? (
+          {showAuthenticated ? (
             <>
               <Link
-                href="/dashboard"
+                href="/my-courses"
                 className="flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-lg font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-primary-hover"
               >
                 My Courses
@@ -106,10 +110,10 @@ export function Navbar() {
             >
               Help
             </Link>
-            {isAuthenticated ? (
+            {showAuthenticated ? (
               <>
                 <Link
-                  href="/dashboard"
+                  href="/my-courses"
                   className="rounded-lg px-4 py-3 text-lg font-medium text-text-secondary hover:bg-gray-100"
                   onClick={() => setMobileMenuOpen(false)}
                 >

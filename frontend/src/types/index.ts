@@ -103,6 +103,39 @@ export interface Role {
   price: number | null;
 }
 
+// Privilege types
+export interface Privilege {
+  id: number;
+  name: string;
+  description: string | null;
+  price: number | null;
+}
+
+// Admin User types
+export interface AdminUser {
+  id: number;
+  email: string;
+  username: string | null;
+  isActive: boolean;
+  privileges: string[];
+  createdAt: string;
+  lastLogin: string | null;
+}
+
+export interface CreateUserFormData {
+  email: string;
+  username: string;
+  password: string;
+  privilegeIds: number[];
+}
+
+export interface EditUserFormData {
+  username: string;
+  email: string;
+  isActive: boolean;
+  privilegeIds: number[];
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean;

@@ -12,6 +12,29 @@ export const updateUserSchema = z.object({
   }),
 });
 
+export const createUserSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    username: z.string().min(3).optional(),
+    password: z.string().min(6),
+    privilegeIds: z.array(z.number()).optional(),
+  }),
+});
+
+export const adminUpdateUserSchema = z.object({
+  body: z.object({
+    username: z.string().min(3).optional(),
+    email: z.string().email().optional(),
+    isActive: z.boolean().optional(),
+  }),
+});
+
+export const updatePrivilegesSchema = z.object({
+  body: z.object({
+    privilegeIds: z.array(z.number()),
+  }),
+});
+
 export const userController = {
   /**
    * Get current user profile
@@ -97,5 +120,40 @@ export const userController = {
     const privilegeId = parseInt(req.params.privilegeId);
     const result = await userService.removePrivilege(userId, privilegeId);
     sendSuccess(res, result);
+  }),
+
+  /**
+   * Create user (admin)
+   */
+  createUser: asyncHandler(async (req: Request, res: Response) => {
+    const user = await userService.create(req.body);
+    sendSuccess(res, user, "User created successfully", 201);
+  }),
+
+  /**
+   * Get all privileges (admin)
+   */
+  getAllPrivileges: asyncHandler(async (_req: Request, res: Response) => {
+    const privileges = await userService.getAllPrivileges();
+    sendSuccess(res, privileges);
+  }),
+
+  /**
+   * Update user privileges (admin)
+   */
+  updateUserPrivileges: asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id);
+    const { privilegeIds } = req.body;
+    const user = await userService.updateUserPrivileges(userId, privilegeIds);
+    sendSuccess(res, user, "User privileges updated successfully");
+  }),
+
+  /**
+   * Admin update user (admin)
+   */
+  adminUpdateUser: asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id);
+    const user = await userService.adminUpdate(userId, req.body);
+    sendSuccess(res, user, "User updated successfully");
   }),
 };

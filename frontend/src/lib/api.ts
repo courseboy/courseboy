@@ -108,4 +108,26 @@ export const userApi = {
   getProgress: () => api.get("/users/progress"),
 };
 
+// Admin User Management API
+export const adminUserApi = {
+  getAll: (page = 1, limit = 10) =>
+    api.get(`/users?page=${page}&limit=${limit}`),
+  getById: (id: number) => api.get(`/users/${id}`),
+  create: (data: {
+    email: string;
+    username?: string;
+    password: string;
+    privilegeIds?: number[];
+  }) => api.post("/users", data),
+  update: (
+    id: number,
+    data: { username?: string; email?: string; isActive?: boolean }
+  ) => api.patch(`/users/${id}`, data),
+  deactivate: (id: number) => api.patch(`/users/${id}/deactivate`),
+  activate: (id: number) => api.patch(`/users/${id}/activate`),
+  getPrivileges: () => api.get("/users/privileges"),
+  updatePrivileges: (id: number, privilegeIds: number[]) =>
+    api.put(`/users/${id}/privileges`, { privilegeIds }),
+};
+
 export default api;

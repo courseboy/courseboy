@@ -1,5 +1,7 @@
 import prisma from "../config/database.js";
-import { NotFoundError } from "../utils/errors.js";
+import bcrypt from "bcryptjs";
+import { config } from "../config/index.js";
+import { NotFoundError, ConflictError } from "../utils/errors.js";
 import { paginate, paginationMeta } from "../utils/response.js";
 
 interface UpdateUserInput {
@@ -7,7 +9,80 @@ interface UpdateUserInput {
   email?: string;
 }
 
+interface CreateUserInput {
+  email: string;
+  username?: string;
+  password: string;
+  privilegeIds?: number[];
+}
+
 export class UserService {
+  /**
+   * Create a new user (Admin only)
+   */
+  async create(input: CreateUserInput) {
+    // Check if user exists
+    const existingUser = await prisma.appUser.findUnique({
+      where: { email: input.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictError("Email already registered");
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(input.password, config.bcryptRounds);
+
+    // Create user with transaction
+    const user = await prisma.$transaction(async (tx) => {
+      // Create user
+      const newUser = await tx.appUser.create({
+        data: {
+          email: input.email,
+          username: input.username || null,
+        },
+      });
+
+      // Create user secret
+      await tx.userSecret.create({
+        data: {
+          userId: newUser.id,
+          passwordHash,
+        },
+      });
+
+      // Assign privileges if provided, otherwise assign Member
+      const privilegeIdsToAssign = input.privilegeIds?.length
+        ? input.privilegeIds
+        : [];
+
+      // If no privileges specified, assign Member by default
+      if (privilegeIdsToAssign.length === 0) {
+        const memberPrivilege = await tx.privilege.findUnique({
+          where: { name: "Member" },
+        });
+        if (memberPrivilege) {
+          privilegeIdsToAssign.push(memberPrivilege.id);
+        }
+      }
+
+      // Assign all privileges
+      for (const privilegeId of privilegeIdsToAssign) {
+        await tx.userPrivilege.create({
+          data: {
+            userId: newUser.id,
+            privilegeId,
+          },
+        });
+      }
+
+      return newUser;
+    });
+
+    // Fetch user with privileges
+    return this.getById(user.id);
+  }
+
   /**
    * Get user by ID
    */
@@ -186,6 +261,51 @@ export class UserService {
     }, {} as Record<number, { courseId: number; courseName: string | null; completedLessons: number; totalWatchedSeconds: number }>);
 
     return Object.values(courseProgress);
+  }
+
+  /**
+   * Get all privileges
+   */
+  async getAllPrivileges() {
+    const privileges = await prisma.privilege.findMany({
+      orderBy: { name: "asc" },
+    });
+
+    return privileges;
+  }
+
+  /**
+   * Update user privileges (replace all)
+   */
+  async updateUserPrivileges(userId: number, privilegeIds: number[]) {
+    // First, remove all existing privileges
+    await prisma.userPrivilege.deleteMany({
+      where: { userId },
+    });
+
+    // Then add new privileges
+    for (const privilegeId of privilegeIds) {
+      await prisma.userPrivilege.create({
+        data: {
+          userId,
+          privilegeId,
+        },
+      });
+    }
+
+    return this.getById(userId);
+  }
+
+  /**
+   * Update user by admin
+   */
+  async adminUpdate(userId: number, input: { username?: string; email?: string; isActive?: boolean }) {
+    const user = await prisma.appUser.update({
+      where: { id: userId },
+      data: input,
+    });
+
+    return this.getById(user.id);
   }
 }
 

@@ -2,6 +2,9 @@ import { Router } from "express";
 import {
   userController,
   updateUserSchema,
+  createUserSchema,
+  adminUpdateUserSchema,
+  updatePrivilegesSchema,
 } from "../controllers/user.controller.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { validateZod } from "../middleware/validate.js";
@@ -22,10 +25,33 @@ router.get("/progress", authenticate, userController.getProgress);
 router.get("/", authenticate, authorize("Admin"), userController.getAllUsers);
 
 router.get(
+  "/privileges",
+  authenticate,
+  authorize("Admin"),
+  userController.getAllPrivileges
+);
+
+router.post(
+  "/",
+  authenticate,
+  authorize("Admin"),
+  validateZod(createUserSchema),
+  userController.createUser
+);
+
+router.get(
   "/:id",
   authenticate,
   authorize("Admin"),
   userController.getUserById
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  authorize("Admin"),
+  validateZod(adminUpdateUserSchema),
+  userController.adminUpdateUser
 );
 
 router.patch(
@@ -47,6 +73,14 @@ router.post(
   authenticate,
   authorize("Admin"),
   userController.assignPrivilege
+);
+
+router.put(
+  "/:id/privileges",
+  authenticate,
+  authorize("Admin"),
+  validateZod(updatePrivilegesSchema),
+  userController.updateUserPrivileges
 );
 
 router.delete(

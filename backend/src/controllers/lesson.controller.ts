@@ -26,6 +26,9 @@ export const updateLessonSchema = z.object({
     isFreePreview: z.boolean().optional(),
     orderIndex: z.number().int().positive().optional(),
   }),
+  params: z.object({
+    id: z.string().transform(Number),
+  }),
 });
 
 export const updateProgressSchema = z.object({

@@ -249,7 +249,7 @@ export default function LearnCoursePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background-light">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo & Back */}
           <div className="flex items-center gap-4">

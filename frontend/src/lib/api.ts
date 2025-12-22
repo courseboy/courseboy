@@ -130,6 +130,19 @@ export const adminUserApi = {
     api.put(`/users/${id}/privileges`, { privilegeIds }),
 };
 
+// Admin Privilege Management API
+export const adminPrivilegeApi = {
+  getAll: () => api.get("/users/privileges"),
+  getById: (id: number) => api.get(`/users/privileges/${id}`),
+  create: (data: { name: string; description?: string; price?: number }) =>
+    api.post("/users/privileges", data),
+  update: (
+    id: number,
+    data: { name?: string; description?: string | null; price?: number | null }
+  ) => api.patch(`/users/privileges/${id}`, data),
+  delete: (id: number) => api.delete(`/users/privileges/${id}`),
+};
+
 // Admin Course Management API
 export const adminCourseApi = {
   getAll: (page = 1, limit = 50) =>

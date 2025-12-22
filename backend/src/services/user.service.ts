@@ -313,6 +313,14 @@ export class UserService {
   async getAllPrivileges() {
     const privileges = await prisma.privilege.findMany({
       orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: {
+            userPrivileges: true,
+            courses: true,
+          },
+        },
+      },
     });
 
     return privileges;
@@ -353,6 +361,87 @@ export class UserService {
     });
 
     return this.getById(user.id);
+  }
+
+  // =====================
+  // Privilege CRUD Methods
+  // =====================
+
+  /**
+   * Create a new privilege
+   */
+  async createPrivilege(input: {
+    name: string;
+    description?: string;
+    price?: number;
+  }) {
+    const privilege = await prisma.privilege.create({
+      data: input,
+    });
+
+    return privilege;
+  }
+
+  /**
+   * Update a privilege
+   */
+  async updatePrivilege(
+    privilegeId: number,
+    input: { name?: string; description?: string; price?: number }
+  ) {
+    const privilege = await prisma.privilege.update({
+      where: { id: privilegeId },
+      data: input,
+    });
+
+    return privilege;
+  }
+
+  /**
+   * Delete a privilege
+   */
+  async deletePrivilege(privilegeId: number) {
+    // Check if any courses require this privilege
+    const coursesWithPrivilege = await prisma.course.count({
+      where: { requiredPrivilegeId: privilegeId },
+    });
+
+    if (coursesWithPrivilege > 0) {
+      throw new Error(
+        `Cannot delete privilege: ${coursesWithPrivilege} course(s) require this privilege. Please update those courses first.`
+      );
+    }
+
+    // Remove privilege from all users first
+    await prisma.userPrivilege.deleteMany({
+      where: { privilegeId },
+    });
+
+    // Delete the privilege
+    await prisma.privilege.delete({
+      where: { id: privilegeId },
+    });
+
+    return { success: true, message: "Privilege deleted successfully" };
+  }
+
+  /**
+   * Get privilege by ID with counts
+   */
+  async getPrivilegeById(privilegeId: number) {
+    const privilege = await prisma.privilege.findUnique({
+      where: { id: privilegeId },
+      include: {
+        _count: {
+          select: {
+            userPrivileges: true,
+            courses: true,
+          },
+        },
+      },
+    });
+
+    return privilege;
   }
 }
 

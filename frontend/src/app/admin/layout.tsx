@@ -22,6 +22,11 @@ const sidebarLinks = [
     href: "/admin/courses",
     icon: "book_2",
   },
+  {
+    name: "Privileges",
+    href: "/admin/privileges",
+    icon: "verified_user",
+  },
 ];
 
 export default function AdminLayout({

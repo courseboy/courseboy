@@ -5,6 +5,8 @@ import {
   createUserSchema,
   adminUpdateUserSchema,
   updatePrivilegesSchema,
+  createPrivilegeSchema,
+  updatePrivilegeSchema,
 } from "../controllers/user.controller.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { validateZod } from "../middleware/validate.js";
@@ -24,11 +26,42 @@ router.get("/progress", authenticate, userController.getProgress);
 // Admin routes
 router.get("/", authenticate, authorize("Admin"), userController.getAllUsers);
 
+// Privilege management routes (must be before /:id to avoid conflicts)
 router.get(
   "/privileges",
   authenticate,
   authorize("Admin"),
   userController.getAllPrivileges
+);
+
+router.post(
+  "/privileges",
+  authenticate,
+  authorize("Admin"),
+  validateZod(createPrivilegeSchema),
+  userController.createPrivilege
+);
+
+router.get(
+  "/privileges/:id",
+  authenticate,
+  authorize("Admin"),
+  userController.getPrivilegeById
+);
+
+router.patch(
+  "/privileges/:id",
+  authenticate,
+  authorize("Admin"),
+  validateZod(updatePrivilegeSchema as any),
+  userController.updatePrivilege
+);
+
+router.delete(
+  "/privileges/:id",
+  authenticate,
+  authorize("Admin"),
+  userController.deletePrivilege
 );
 
 router.post(

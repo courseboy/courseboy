@@ -35,6 +35,25 @@ export const updatePrivilegesSchema = z.object({
   }),
 });
 
+export const createPrivilegeSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, "Privilege name is required"),
+    description: z.string().optional(),
+    price: z.number().int().min(0).optional(),
+  }),
+});
+
+export const updatePrivilegeSchema = z.object({
+  body: z.object({
+    name: z.string().min(1).optional(),
+    description: z.string().optional().nullable(),
+    price: z.number().int().min(0).optional().nullable(),
+  }),
+  params: z.object({
+    id: z.string().transform(Number),
+  }),
+});
+
 export const userController = {
   /**
    * Get current user profile
@@ -155,5 +174,44 @@ export const userController = {
     const userId = parseInt(req.params.id);
     const user = await userService.adminUpdate(userId, req.body);
     sendSuccess(res, user, "User updated successfully");
+  }),
+
+  // =====================
+  // Privilege CRUD Methods
+  // =====================
+
+  /**
+   * Create privilege (admin)
+   */
+  createPrivilege: asyncHandler(async (req: Request, res: Response) => {
+    const privilege = await userService.createPrivilege(req.body);
+    sendSuccess(res, privilege, "Privilege created successfully", 201);
+  }),
+
+  /**
+   * Update privilege (admin)
+   */
+  updatePrivilege: asyncHandler(async (req: Request, res: Response) => {
+    const privilegeId = parseInt(req.params.id);
+    const privilege = await userService.updatePrivilege(privilegeId, req.body);
+    sendSuccess(res, privilege, "Privilege updated successfully");
+  }),
+
+  /**
+   * Delete privilege (admin)
+   */
+  deletePrivilege: asyncHandler(async (req: Request, res: Response) => {
+    const privilegeId = parseInt(req.params.id);
+    const result = await userService.deletePrivilege(privilegeId);
+    sendSuccess(res, result);
+  }),
+
+  /**
+   * Get privilege by ID (admin)
+   */
+  getPrivilegeById: asyncHandler(async (req: Request, res: Response) => {
+    const privilegeId = parseInt(req.params.id);
+    const privilege = await userService.getPrivilegeById(privilegeId);
+    sendSuccess(res, privilege);
   }),
 };

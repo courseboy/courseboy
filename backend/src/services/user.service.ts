@@ -1,5 +1,7 @@
 import prisma from "../config/database.js";
-import { NotFoundError } from "../utils/errors.js";
+import bcrypt from "bcryptjs";
+import { config } from "../config/index.js";
+import { NotFoundError, ConflictError } from "../utils/errors.js";
 import { paginate, paginationMeta } from "../utils/response.js";
 
 interface UpdateUserInput {
@@ -7,7 +9,80 @@ interface UpdateUserInput {
   email?: string;
 }
 
+interface CreateUserInput {
+  email: string;
+  username?: string;
+  password: string;
+  privilegeIds?: number[];
+}
+
 export class UserService {
+  /**
+   * Create a new user (Admin only)
+   */
+  async create(input: CreateUserInput) {
+    // Check if user exists
+    const existingUser = await prisma.appUser.findUnique({
+      where: { email: input.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictError("Email already registered");
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(input.password, config.bcryptRounds);
+
+    // Create user with transaction
+    const user = await prisma.$transaction(async (tx) => {
+      // Create user
+      const newUser = await tx.appUser.create({
+        data: {
+          email: input.email,
+          username: input.username || null,
+        },
+      });
+
+      // Create user secret
+      await tx.userSecret.create({
+        data: {
+          userId: newUser.id,
+          passwordHash,
+        },
+      });
+
+      // Assign privileges if provided, otherwise assign Member
+      const privilegeIdsToAssign = input.privilegeIds?.length
+        ? input.privilegeIds
+        : [];
+
+      // If no privileges specified, assign Member by default
+      if (privilegeIdsToAssign.length === 0) {
+        const memberPrivilege = await tx.privilege.findUnique({
+          where: { name: "Member" },
+        });
+        if (memberPrivilege) {
+          privilegeIdsToAssign.push(memberPrivilege.id);
+        }
+      }
+
+      // Assign all privileges
+      for (const privilegeId of privilegeIdsToAssign) {
+        await tx.userPrivilege.create({
+          data: {
+            userId: newUser.id,
+            privilegeId,
+          },
+        });
+      }
+
+      return newUser;
+    });
+
+    // Fetch user with privileges
+    return this.getById(user.id);
+  }
+
   /**
    * Get user by ID
    */
@@ -153,27 +228,46 @@ export class UserService {
   }
 
   /**
-   * Get user's enrolled courses progress
+   * Get user's courses based on their privileges and progress
    */
   async getUserProgress(userId: number) {
-    const progress = await prisma.userAccess.findMany({
+    // Get user's privileges
+    const userPrivileges = await prisma.userPrivilege.findMany({
       where: { userId },
+      include: { privilege: true },
+    });
+
+    const privilegeIds = userPrivileges.map((up) => up.privilegeId);
+
+    // Get all courses the user has access to (via privileges or no privilege required)
+    const accessibleCourses = await prisma.course.findMany({
+      where: {
+        isPublished: true,
+        OR: [
+          { requiredPrivilegeId: null }, // No privilege required
+          { requiredPrivilegeId: { in: privilegeIds } }, // User has required privilege
+        ],
+      },
       include: {
-        lesson: {
-          include: {
-            course: true,
-          },
+        _count: {
+          select: { lessons: true },
         },
       },
     });
 
-    // Group by course
-    const courseProgress = progress.reduce((acc, access) => {
+    // Get user's watch progress for all lessons
+    const userAccess = await prisma.userAccess.findMany({
+      where: { userId },
+      include: {
+        lesson: true,
+      },
+    });
+
+    // Group progress by course
+    const progressByCourse = userAccess.reduce((acc, access) => {
       const courseId = access.lesson.courseId;
       if (!acc[courseId]) {
         acc[courseId] = {
-          courseId,
-          courseName: access.lesson.course.name,
           completedLessons: 0,
           totalWatchedSeconds: 0,
         };
@@ -183,9 +277,171 @@ export class UserService {
       }
       acc[courseId].totalWatchedSeconds += access.watchedSeconds;
       return acc;
-    }, {} as Record<number, { courseId: number; courseName: string | null; completedLessons: number; totalWatchedSeconds: number }>);
+    }, {} as Record<number, { completedLessons: number; totalWatchedSeconds: number }>);
 
-    return Object.values(courseProgress);
+    // Combine course info with progress
+    const result = accessibleCourses.map((course) => {
+      const progress = progressByCourse[course.id] || {
+        completedLessons: 0,
+        totalWatchedSeconds: 0,
+      };
+      const totalLessons = course._count.lessons;
+      const percentage =
+        totalLessons > 0
+          ? Math.round((progress.completedLessons / totalLessons) * 100)
+          : 0;
+
+      return {
+        courseId: course.id,
+        courseName: course.name,
+        coverImg: course.coverImg,
+        description: course.description,
+        completedLessons: progress.completedLessons,
+        totalLessons,
+        totalWatchedSeconds: progress.totalWatchedSeconds,
+        percentage,
+        isNew: progress.completedLessons === 0,
+      };
+    });
+
+    return result;
+  }
+
+  /**
+   * Get all privileges
+   */
+  async getAllPrivileges() {
+    const privileges = await prisma.privilege.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: {
+            userPrivileges: true,
+            courses: true,
+          },
+        },
+      },
+    });
+
+    return privileges;
+  }
+
+  /**
+   * Update user privileges (replace all)
+   */
+  async updateUserPrivileges(userId: number, privilegeIds: number[]) {
+    // First, remove all existing privileges
+    await prisma.userPrivilege.deleteMany({
+      where: { userId },
+    });
+
+    // Then add new privileges
+    for (const privilegeId of privilegeIds) {
+      await prisma.userPrivilege.create({
+        data: {
+          userId,
+          privilegeId,
+        },
+      });
+    }
+
+    return this.getById(userId);
+  }
+
+  /**
+   * Update user by admin
+   */
+  async adminUpdate(
+    userId: number,
+    input: { username?: string; email?: string; isActive?: boolean }
+  ) {
+    const user = await prisma.appUser.update({
+      where: { id: userId },
+      data: input,
+    });
+
+    return this.getById(user.id);
+  }
+
+  // =====================
+  // Privilege CRUD Methods
+  // =====================
+
+  /**
+   * Create a new privilege
+   */
+  async createPrivilege(input: {
+    name: string;
+    description?: string;
+    price?: number;
+  }) {
+    const privilege = await prisma.privilege.create({
+      data: input,
+    });
+
+    return privilege;
+  }
+
+  /**
+   * Update a privilege
+   */
+  async updatePrivilege(
+    privilegeId: number,
+    input: { name?: string; description?: string; price?: number }
+  ) {
+    const privilege = await prisma.privilege.update({
+      where: { id: privilegeId },
+      data: input,
+    });
+
+    return privilege;
+  }
+
+  /**
+   * Delete a privilege
+   */
+  async deletePrivilege(privilegeId: number) {
+    // Check if any courses require this privilege
+    const coursesWithPrivilege = await prisma.course.count({
+      where: { requiredPrivilegeId: privilegeId },
+    });
+
+    if (coursesWithPrivilege > 0) {
+      throw new Error(
+        `Cannot delete privilege: ${coursesWithPrivilege} course(s) require this privilege. Please update those courses first.`
+      );
+    }
+
+    // Remove privilege from all users first
+    await prisma.userPrivilege.deleteMany({
+      where: { privilegeId },
+    });
+
+    // Delete the privilege
+    await prisma.privilege.delete({
+      where: { id: privilegeId },
+    });
+
+    return { success: true, message: "Privilege deleted successfully" };
+  }
+
+  /**
+   * Get privilege by ID with counts
+   */
+  async getPrivilegeById(privilegeId: number) {
+    const privilege = await prisma.privilege.findUnique({
+      where: { id: privilegeId },
+      include: {
+        _count: {
+          select: {
+            userPrivileges: true,
+            courses: true,
+          },
+        },
+      },
+    });
+
+    return privilege;
   }
 }
 

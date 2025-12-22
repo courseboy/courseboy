@@ -108,4 +108,102 @@ export const userApi = {
   getProgress: () => api.get("/users/progress"),
 };
 
+// Admin User Management API
+export const adminUserApi = {
+  getAll: (page = 1, limit = 10) =>
+    api.get(`/users?page=${page}&limit=${limit}`),
+  getById: (id: number) => api.get(`/users/${id}`),
+  create: (data: {
+    email: string;
+    username?: string;
+    password: string;
+    privilegeIds?: number[];
+  }) => api.post("/users", data),
+  update: (
+    id: number,
+    data: { username?: string; email?: string; isActive?: boolean }
+  ) => api.patch(`/users/${id}`, data),
+  deactivate: (id: number) => api.patch(`/users/${id}/deactivate`),
+  activate: (id: number) => api.patch(`/users/${id}/activate`),
+  getPrivileges: () => api.get("/users/privileges"),
+  updatePrivileges: (id: number, privilegeIds: number[]) =>
+    api.put(`/users/${id}/privileges`, { privilegeIds }),
+};
+
+// Admin Privilege Management API
+export const adminPrivilegeApi = {
+  getAll: () => api.get("/users/privileges"),
+  getById: (id: number) => api.get(`/users/privileges/${id}`),
+  create: (data: { name: string; description?: string; price?: number }) =>
+    api.post("/users/privileges", data),
+  update: (
+    id: number,
+    data: { name?: string; description?: string | null; price?: number | null }
+  ) => api.patch(`/users/privileges/${id}`, data),
+  delete: (id: number) => api.delete(`/users/privileges/${id}`),
+};
+
+// Admin Course Management API
+export const adminCourseApi = {
+  getAll: (page = 1, limit = 50) =>
+    api.get(`/courses/admin/all?page=${page}&limit=${limit}`),
+  getById: (id: number) => api.get(`/courses/${id}`),
+  create: (data: {
+    name: string;
+    description?: string;
+    coverImg?: string;
+    requiredPrivilegeId?: number;
+    isPublished?: boolean;
+  }) => api.post("/courses", data),
+  update: (
+    id: number,
+    data: {
+      name?: string;
+      description?: string;
+      coverImg?: string;
+      requiredPrivilegeId?: number | null;
+      isPublished?: boolean;
+    }
+  ) => api.patch(`/courses/${id}`, data),
+  delete: (id: number) => api.delete(`/courses/${id}`),
+
+  // Category management
+  createCategory: (courseId: number, data: { name: string }) =>
+    api.post(`/courses/${courseId}/categories`, data),
+  updateCategory: (categoryId: number, data: { name?: string }) =>
+    api.patch(`/courses/categories/${categoryId}`, data),
+  deleteCategory: (categoryId: number) =>
+    api.delete(`/courses/categories/${categoryId}`),
+  reorderCategories: (courseId: number, categoryIds: number[]) =>
+    api.put(`/courses/${courseId}/categories/reorder`, { categoryIds }),
+
+  // Lesson management
+  createLesson: (
+    courseId: number,
+    categoryId: number,
+    data: {
+      title: string;
+      videoUrl?: string;
+      durationSeconds?: number;
+      isFreePreview?: boolean;
+    }
+  ) =>
+    api.post(
+      `/lessons/courses/${courseId}/categories/${categoryId}/lessons`,
+      data
+    ),
+  updateLesson: (
+    lessonId: number,
+    data: {
+      title?: string;
+      videoUrl?: string;
+      durationSeconds?: number;
+      isFreePreview?: boolean;
+    }
+  ) => api.patch(`/lessons/${lessonId}`, data),
+  deleteLesson: (lessonId: number) => api.delete(`/lessons/${lessonId}`),
+  reorderLessons: (categoryId: number, lessonIds: number[]) =>
+    api.put(`/courses/categories/${categoryId}/lessons/reorder`, { lessonIds }),
+};
+
 export default api;

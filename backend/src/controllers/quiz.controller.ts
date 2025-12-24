@@ -229,4 +229,27 @@ export const quizController = {
     const submissions = await quizService.getQuizSubmissions(quizId);
     sendSuccess(res, submissions);
   }),
+
+  /**
+   * Get quiz analytics overview (admin)
+   */
+  getAnalyticsOverview: asyncHandler(async (req: Request, res: Response) => {
+    const courseId = req.query.courseId
+      ? parseInt(req.query.courseId as string)
+      : undefined;
+    const quizId = req.query.quizId
+      ? parseInt(req.query.quizId as string)
+      : undefined;
+    const analytics = await quizService.getAnalyticsOverview(courseId, quizId);
+    sendSuccess(res, analytics);
+  }),
+
+  /**
+   * Get question-level analytics for a quiz (admin)
+   */
+  getQuestionAnalytics: asyncHandler(async (req: Request, res: Response) => {
+    const quizId = parseInt(req.params.id);
+    const analytics = await quizService.getQuestionAnalytics(quizId);
+    sendSuccess(res, analytics);
+  }),
 };

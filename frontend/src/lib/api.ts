@@ -254,6 +254,19 @@ export const adminCourseApi = {
     api.delete(`/quizzes/questions/${questionId}`),
   reorderQuestions: (quizId: number, questionIds: number[]) =>
     api.post(`/quizzes/${quizId}/questions/reorder`, { questionIds }),
+
+  // Quiz analytics
+  getAnalyticsOverview: (courseId?: number, quizId?: number) => {
+    const params = new URLSearchParams();
+    if (courseId) params.append("courseId", courseId.toString());
+    if (quizId) params.append("quizId", quizId.toString());
+    const queryString = params.toString();
+    return api.get(
+      `/quizzes/analytics/overview${queryString ? `?${queryString}` : ""}`
+    );
+  },
+  getQuestionAnalytics: (quizId: number) =>
+    api.get(`/quizzes/${quizId}/analytics`),
 };
 
 // Quiz API (for users)

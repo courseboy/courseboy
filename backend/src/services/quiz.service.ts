@@ -541,6 +541,315 @@ export class QuizService {
 
     return submissions;
   }
+
+  /**
+   * Get quiz analytics overview (admin)
+   */
+  async getAnalyticsOverview(courseId?: number, quizId?: number) {
+    // Build where clause
+    let whereClause = {};
+    if (quizId) {
+      whereClause = { quizId };
+    } else if (courseId) {
+      whereClause = {
+        quiz: {
+          courseCategory: {
+            courseId,
+          },
+        },
+      };
+    }
+
+    // Get all submissions
+    const submissions = await prisma.quizSubmission.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        score: true,
+        maxScore: true,
+        percentage: true,
+        passed: true,
+        timeTaken: true,
+        submittedAt: true,
+        quiz: {
+          select: {
+            id: true,
+            name: true,
+            passingScore: true,
+            courseCategory: {
+              select: {
+                course: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { submittedAt: "desc" },
+    });
+
+    // Calculate stats
+    const totalAttempts = submissions.length;
+    const passedCount = submissions.filter((s) => s.passed).length;
+    const passRate =
+      totalAttempts > 0 ? Math.round((passedCount / totalAttempts) * 100) : 0;
+    const avgScore =
+      totalAttempts > 0
+        ? Math.round(
+            submissions.reduce((sum, s) => sum + s.percentage, 0) /
+              totalAttempts
+          )
+        : 0;
+    const avgTimeTaken =
+      totalAttempts > 0
+        ? Math.round(
+            submissions
+              .filter((s) => s.timeTaken)
+              .reduce((sum, s) => sum + (s.timeTaken || 0), 0) /
+              submissions.filter((s) => s.timeTaken).length || 0
+          )
+        : 0;
+
+    // Score distribution (buckets: 0-20, 21-40, 41-60, 61-80, 81-100)
+    const scoreDistribution = [
+      { range: "0-20", count: 0 },
+      { range: "21-40", count: 0 },
+      { range: "41-60", count: 0 },
+      { range: "61-80", count: 0 },
+      { range: "81-100", count: 0 },
+    ];
+    submissions.forEach((s) => {
+      if (s.percentage <= 20) scoreDistribution[0].count++;
+      else if (s.percentage <= 40) scoreDistribution[1].count++;
+      else if (s.percentage <= 60) scoreDistribution[2].count++;
+      else if (s.percentage <= 80) scoreDistribution[3].count++;
+      else scoreDistribution[4].count++;
+    });
+
+    // Recent submissions (last 10)
+    const recentSubmissions = submissions.slice(0, 10).map((s) => ({
+      id: s.id,
+      user: s.user,
+      quiz: {
+        id: s.quiz.id,
+        name: s.quiz.name,
+      },
+      course: s.quiz.courseCategory.course,
+      score: s.score,
+      maxScore: s.maxScore,
+      percentage: s.percentage,
+      passed: s.passed,
+      timeTaken: s.timeTaken,
+      submittedAt: s.submittedAt,
+    }));
+
+    // Quiz performance summary
+    const quizStats: Record<
+      number,
+      {
+        name: string;
+        attempts: number;
+        passed: number;
+        totalPercentage: number;
+      }
+    > = {};
+    submissions.forEach((s) => {
+      if (!quizStats[s.quiz.id]) {
+        quizStats[s.quiz.id] = {
+          name: s.quiz.name,
+          attempts: 0,
+          passed: 0,
+          totalPercentage: 0,
+        };
+      }
+      quizStats[s.quiz.id].attempts++;
+      if (s.passed) quizStats[s.quiz.id].passed++;
+      quizStats[s.quiz.id].totalPercentage += s.percentage;
+    });
+
+    const quizPerformance = Object.entries(quizStats)
+      .map(([id, stats]) => ({
+        id: parseInt(id),
+        name: stats.name,
+        attempts: stats.attempts,
+        passRate: Math.round((stats.passed / stats.attempts) * 100),
+        avgScore: Math.round(stats.totalPercentage / stats.attempts),
+      }))
+      .sort((a, b) => b.attempts - a.attempts);
+
+    // Struggling users (users with failed attempts)
+    const userStats: Record<
+      number,
+      {
+        user: { id: number; email: string; username: string | null };
+        failed: number;
+        total: number;
+        totalPercentage: number;
+      }
+    > = {};
+    submissions.forEach((s) => {
+      if (!userStats[s.user.id]) {
+        userStats[s.user.id] = {
+          user: s.user,
+          failed: 0,
+          total: 0,
+          totalPercentage: 0,
+        };
+      }
+      userStats[s.user.id].total++;
+      if (!s.passed) userStats[s.user.id].failed++;
+      userStats[s.user.id].totalPercentage += s.percentage;
+    });
+
+    const strugglingUsers = Object.values(userStats)
+      .filter((u) => u.failed > 0)
+      .map((u) => ({
+        user: u.user,
+        failedQuizzes: u.failed,
+        totalAttempts: u.total,
+        avgScore: Math.round(u.totalPercentage / u.total),
+      }))
+      .sort((a, b) => b.failedQuizzes - a.failedQuizzes)
+      .slice(0, 10);
+
+    return {
+      stats: {
+        totalAttempts,
+        passRate,
+        avgScore,
+        avgTimeTaken,
+        passedCount,
+        failedCount: totalAttempts - passedCount,
+      },
+      scoreDistribution,
+      recentSubmissions,
+      quizPerformance,
+      strugglingUsers,
+    };
+  }
+
+  /**
+   * Get question-level analytics for a specific quiz (admin)
+   */
+  async getQuestionAnalytics(quizId: number) {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        questions: {
+          orderBy: { orderIndex: "asc" },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundError("Quiz not found");
+    }
+
+    const submissions = await prisma.quizSubmission.findMany({
+      where: { quizId },
+      select: {
+        answers: true,
+      },
+    });
+
+    // Analyze each question
+    const questionAnalytics = quiz.questions.map((question) => {
+      let correctCount = 0;
+      const optionCounts: Record<number, number> = {};
+
+      // Initialize option counts
+      question.options.forEach((_, index) => {
+        optionCounts[index] = 0;
+      });
+
+      // Count answers
+      submissions.forEach((submission) => {
+        const answers = submission.answers as Record<string, number> | null;
+        if (answers && answers[question.id] !== undefined) {
+          const selectedOption = answers[question.id];
+          optionCounts[selectedOption] =
+            (optionCounts[selectedOption] || 0) + 1;
+          if (selectedOption === question.correctAnswer) {
+            correctCount++;
+          }
+        }
+      });
+
+      const totalAnswers = submissions.length;
+      const correctPercentage =
+        totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0;
+
+      // Find most common wrong answer
+      let mostCommonWrong: {
+        option: string;
+        count: number;
+        percentage: number;
+      } | null = null;
+      Object.entries(optionCounts).forEach(([index, count]) => {
+        const idx = parseInt(index);
+        if (idx !== question.correctAnswer && count > 0) {
+          const percentage = Math.round((count / totalAnswers) * 100);
+          if (!mostCommonWrong || count > mostCommonWrong.count) {
+            mostCommonWrong = {
+              option: question.options[idx],
+              count,
+              percentage,
+            };
+          }
+        }
+      });
+
+      return {
+        id: question.id,
+        questionText: question.questionText,
+        questionType: question.questionType,
+        options: question.options,
+        correctAnswer: question.correctAnswer,
+        points: question.points,
+        totalAnswers,
+        correctCount,
+        correctPercentage,
+        optionDistribution: Object.entries(optionCounts).map(
+          ([index, count]) => ({
+            optionIndex: parseInt(index),
+            optionText: question.options[parseInt(index)],
+            count,
+            percentage:
+              totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0,
+            isCorrect: parseInt(index) === question.correctAnswer,
+          })
+        ),
+        mostCommonWrong,
+        difficulty:
+          correctPercentage >= 80
+            ? "easy"
+            : correctPercentage >= 50
+            ? "medium"
+            : "hard",
+      };
+    });
+
+    return {
+      quiz: {
+        id: quiz.id,
+        name: quiz.name,
+        passingScore: quiz.passingScore,
+      },
+      totalSubmissions: submissions.length,
+      questions: questionAnalytics,
+    };
+  }
 }
 
 export const quizService = new QuizService();

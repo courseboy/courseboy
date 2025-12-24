@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quizApi, courseApi } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import { QuizQuestion, QuizSubmitResult } from "@/types";
@@ -12,6 +12,7 @@ export default function QuizPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const courseId = parseInt(params.id as string);
   const quizId = parseInt(searchParams.get("quiz") || "0");
 
@@ -78,6 +79,8 @@ export default function QuizPage() {
     onSuccess: (data) => {
       setSubmitResult(data);
       setShowResults(true);
+      // Invalidate course cache so learn page shows updated quiz results
+      queryClient.invalidateQueries({ queryKey: ["course", courseId] });
     },
   });
 

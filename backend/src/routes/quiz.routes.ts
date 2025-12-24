@@ -38,6 +38,22 @@ router.get(
 
 // ============ Admin Routes ============
 
+// Get quiz analytics overview
+router.get(
+  "/analytics/overview",
+  authenticate,
+  authorize("Admin"),
+  quizController.getAnalyticsOverview
+);
+
+// Get question-level analytics for a quiz
+router.get(
+  "/:id/analytics",
+  authenticate,
+  authorize("Admin"),
+  quizController.getQuestionAnalytics
+);
+
 // Create quiz for a category
 router.post(
   "/category/:categoryId",

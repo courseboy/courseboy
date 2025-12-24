@@ -140,6 +140,71 @@ export interface QuizResults {
   })[];
 }
 
+// Quiz Analytics types
+export interface QuizAnalyticsStats {
+  totalAttempts: number;
+  passRate: number;
+  avgScore: number;
+  avgTimeTaken: number;
+  passedCount: number;
+  failedCount: number;
+}
+
+export interface ScoreDistribution {
+  range: string;
+  count: number;
+}
+
+export interface RecentSubmission {
+  id: number;
+  user: {
+    id: number;
+    email: string;
+    username: string | null;
+  };
+  quiz: {
+    id: number;
+    name: string;
+  };
+  course: {
+    id: number;
+    name: string;
+  };
+  score: number;
+  maxScore: number;
+  percentage: number;
+  passed: boolean;
+  timeTaken: number | null;
+  submittedAt: string;
+}
+
+export interface QuizPerformance {
+  id: number;
+  name: string;
+  attempts: number;
+  passRate: number;
+  avgScore: number;
+}
+
+export interface StrugglingUser {
+  user: {
+    id: number;
+    email: string;
+    username: string | null;
+  };
+  failedQuizzes: number;
+  totalAttempts: number;
+  avgScore: number;
+}
+
+export interface QuizAnalyticsOverview {
+  stats: QuizAnalyticsStats;
+  scoreDistribution: ScoreDistribution[];
+  recentSubmissions: RecentSubmission[];
+  quizPerformance: QuizPerformance[];
+  strugglingUsers: StrugglingUser[];
+}
+
 // Certificate types
 export interface Certificate {
   id: number;

@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { adminCourseApi, adminUserApi } from "@/lib/api";
-import { AdminCourse, AdminCategory, AdminLesson, Privilege } from "@/types";
+import {
+  AdminCourse,
+  AdminCategory,
+  AdminLesson,
+  Privilege,
+  Quiz,
+} from "@/types";
 import { Spinner } from "@/components/ui/spinner";
 import { CreateCourseModal } from "@/components/admin/courses/CreateCourseModal";
 import { EditCourseModal } from "@/components/admin/courses/EditCourseModal";
@@ -10,6 +16,12 @@ import { CreateCategoryModal } from "@/components/admin/courses/CreateCategoryMo
 import { EditCategoryModal } from "@/components/admin/courses/EditCategoryModal";
 import { CreateLessonModal } from "@/components/admin/courses/CreateLessonModal";
 import { EditLessonModal } from "@/components/admin/courses/EditLessonModal";
+import {
+  CreateQuizModal,
+  EditQuizModal,
+  DeleteQuizModal,
+  ManageQuestionsModal,
+} from "@/components/admin/courses/QuizModals";
 
 function formatDuration(seconds: number): string {
   if (!seconds) return "0m";
@@ -67,6 +79,19 @@ export default function AdminCoursesPage() {
   const [selectedLesson, setSelectedLesson] = useState<AdminLesson | null>(
     null
   );
+
+  // Quiz modal states
+  const [isCreateQuizModalOpen, setIsCreateQuizModalOpen] = useState(false);
+  const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
+  const [isDeleteQuizModalOpen, setIsDeleteQuizModalOpen] = useState(false);
+  const [isManageQuestionsModalOpen, setIsManageQuestionsModalOpen] =
+    useState(false);
+  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState<
+    number | null
+  >(null);
+  const [selectedCategoryForQuiz, setSelectedCategoryForQuiz] =
+    useState<AdminCategory | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -218,6 +243,25 @@ export default function AdminCoursesPage() {
     setIsEditLessonModalOpen(true);
   };
 
+  // Quiz handlers
+  const handleAddQuiz = (courseId: number, category: AdminCategory) => {
+    setSelectedCourseForQuiz(courseId);
+    setSelectedCategoryForQuiz(category);
+    setIsCreateQuizModalOpen(true);
+  };
+
+  const handleEditQuiz = (courseId: number, quiz: Quiz) => {
+    setSelectedCourseForQuiz(courseId);
+    setSelectedQuiz(quiz);
+    setIsEditQuizModalOpen(true);
+  };
+
+  const handleDeleteQuiz = (courseId: number, quiz: Quiz) => {
+    setSelectedCourseForQuiz(courseId);
+    setSelectedQuiz(quiz);
+    setIsDeleteQuizModalOpen(true);
+  };
+
   const handleSuccess = () => {
     fetchCourses();
     // Close all modals
@@ -227,10 +271,16 @@ export default function AdminCoursesPage() {
     setIsEditCategoryModalOpen(false);
     setIsCreateLessonModalOpen(false);
     setIsEditLessonModalOpen(false);
+    setIsCreateQuizModalOpen(false);
+    setIsEditQuizModalOpen(false);
+    setIsDeleteQuizModalOpen(false);
     // Clear selections
     setSelectedCourse(null);
     setSelectedCategory(null);
     setSelectedLesson(null);
+    setSelectedQuiz(null);
+    setSelectedCategoryForQuiz(null);
+    setSelectedCourseForQuiz(null);
   };
 
   if (loading && courses.length === 0) {
@@ -575,6 +625,107 @@ export default function AdminCoursesPage() {
                                 </div>
                               ))
                             )}
+
+                            {/* Quizzes Section */}
+                            <div className="mt-4 pt-4 border-t border-slate-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[#F4A261] text-lg">
+                                    quiz
+                                  </span>
+                                  <span className="text-sm font-semibold text-[#1F2933]">
+                                    Quizzes ({category.quizzes?.length || 0})
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddQuiz(course.id, category);
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#F4A261] hover:bg-[#E8954F] rounded-md transition-colors shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">
+                                    add
+                                  </span>
+                                  Add Quiz
+                                </button>
+                              </div>
+
+                              {!category.quizzes ||
+                              category.quizzes.length === 0 ? (
+                                <div className="p-3 text-center bg-orange-50/50 rounded-md border border-dashed border-orange-200">
+                                  <p className="text-xs text-[#6B7280]">
+                                    No quizzes yet. Add a quiz using a Google
+                                    Form link.
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-2">
+                                  {category.quizzes.map((quiz) => (
+                                    <div
+                                      key={quiz.id}
+                                      className="flex items-center justify-between bg-orange-50/50 p-3 rounded-md border border-orange-200 hover:border-[#F4A261]/50 transition-colors group/quiz"
+                                    >
+                                      <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="h-8 w-8 rounded flex items-center justify-center shrink-0 bg-orange-100 text-[#F4A261]">
+                                          <span className="material-symbols-outlined text-[18px]">
+                                            assignment
+                                          </span>
+                                        </div>
+                                        <div className="flex flex-col min-w-0">
+                                          <span className="text-sm font-medium text-[#1F2933] truncate">
+                                            {quiz.name}
+                                          </span>
+                                          <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-semibold">
+                                            {quiz._count?.questions || 0}{" "}
+                                            Questions • Pass:{" "}
+                                            {quiz.passingScore}%
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1 opacity-0 group-hover/quiz:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => {
+                                            setSelectedQuiz(quiz);
+                                            setSelectedCourseForQuiz(course.id);
+                                            setIsManageQuestionsModalOpen(true);
+                                          }}
+                                          className="p-1.5 text-[#6B7280] hover:text-green-600 rounded hover:bg-green-50"
+                                          title="Manage Questions"
+                                        >
+                                          <span className="material-symbols-outlined text-[18px]">
+                                            quiz
+                                          </span>
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleEditQuiz(course.id, quiz)
+                                          }
+                                          className="p-1.5 text-[#6B7280] hover:text-[#3A7BD5] rounded hover:bg-white"
+                                          title="Edit Quiz Settings"
+                                        >
+                                          <span className="material-symbols-outlined text-[18px]">
+                                            edit
+                                          </span>
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteQuiz(course.id, quiz)
+                                          }
+                                          className="p-1.5 text-[#6B7280] hover:text-red-500 rounded hover:bg-red-50"
+                                          title="Delete Quiz"
+                                        >
+                                          <span className="material-symbols-outlined text-[18px]">
+                                            delete
+                                          </span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -655,6 +806,63 @@ export default function AdminCoursesPage() {
           }}
           onSuccess={handleSuccess}
           lesson={selectedLesson}
+        />
+      )}
+
+      {/* Quiz Modals */}
+      {isCreateQuizModalOpen &&
+        selectedCourseForQuiz &&
+        selectedCategoryForQuiz && (
+          <CreateQuizModal
+            courseId={selectedCourseForQuiz}
+            categoryId={selectedCategoryForQuiz.id}
+            categoryName={selectedCategoryForQuiz.name}
+            onClose={() => {
+              setIsCreateQuizModalOpen(false);
+              setSelectedCourseForQuiz(null);
+              setSelectedCategoryForQuiz(null);
+              handleSuccess();
+            }}
+          />
+        )}
+
+      {isEditQuizModalOpen && selectedCourseForQuiz && selectedQuiz && (
+        <EditQuizModal
+          courseId={selectedCourseForQuiz}
+          quiz={selectedQuiz}
+          onClose={() => {
+            setIsEditQuizModalOpen(false);
+            setSelectedCourseForQuiz(null);
+            setSelectedQuiz(null);
+            handleSuccess();
+          }}
+        />
+      )}
+
+      {isDeleteQuizModalOpen && selectedCourseForQuiz && selectedQuiz && (
+        <DeleteQuizModal
+          courseId={selectedCourseForQuiz}
+          quiz={selectedQuiz}
+          onClose={() => {
+            setIsDeleteQuizModalOpen(false);
+            setSelectedCourseForQuiz(null);
+            setSelectedQuiz(null);
+            handleSuccess();
+          }}
+        />
+      )}
+
+      {isManageQuestionsModalOpen && selectedCourseForQuiz && selectedQuiz && (
+        <ManageQuestionsModal
+          courseId={selectedCourseForQuiz}
+          quizId={selectedQuiz.id}
+          quizName={selectedQuiz.name}
+          onClose={() => {
+            setIsManageQuestionsModalOpen(false);
+            setSelectedCourseForQuiz(null);
+            setSelectedQuiz(null);
+            handleSuccess();
+          }}
         />
       )}
     </div>

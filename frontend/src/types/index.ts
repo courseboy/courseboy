@@ -73,17 +73,71 @@ export interface LessonProgress {
 export interface Quiz {
   id: number;
   name: string;
-  questionLink: string;
-  maxScore: number;
+  description: string | null;
+  passingScore: number;
+  timeLimit: number | null;
+  isCompleted?: boolean;
+  hasPassed?: boolean;
+  userSubmission?: QuizSubmission | null;
+  questions?: QuizQuestion[];
+  _count?: {
+    questions: number;
+    quizSubmissions?: number;
+  };
+}
+
+export interface QuizQuestion {
+  id: number;
+  questionText: string;
+  questionType: "multiple_choice" | "true_false";
+  options: string[];
+  correctAnswer?: number; // Only included for admin or after submission
+  points: number;
+  orderIndex: number;
+  // For results page
+  userAnswer?: number | null;
+  isCorrect?: boolean;
 }
 
 export interface QuizSubmission {
   id: number;
   quizId: number;
-  answerLink: string | null;
-  score: number | null;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  passed: boolean;
+  answers?: Record<string, number>;
+  timeTaken: number | null;
   submittedAt: string;
-  instructorFeedback: string | null;
+}
+
+export interface QuizSubmitResult {
+  submission: QuizSubmission;
+  isNewRecord: boolean;
+  questionsTotal: number;
+  questionsCorrect: number;
+  message?: string;
+}
+
+export interface QuizResults {
+  quiz: {
+    id: number;
+    name: string;
+    description: string | null;
+    passingScore: number;
+  };
+  submission: {
+    score: number;
+    maxScore: number;
+    percentage: number;
+    passed: boolean;
+    timeTaken: number | null;
+    submittedAt: string;
+  };
+  questions: (QuizQuestion & {
+    userAnswer: number | null;
+    isCorrect: boolean;
+  })[];
 }
 
 // Certificate types
@@ -159,6 +213,7 @@ export interface AdminCategory {
   orderIndex: number;
   lessonsCount: number;
   lessons: AdminLesson[];
+  quizzes: Quiz[];
 }
 
 export interface AdminLesson {

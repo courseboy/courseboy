@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -8,12 +9,19 @@ export function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-4xl text-primary">
-                school
-              </span>
-              <span className="text-2xl font-bold text-text-main">
-                BrainForge
-              </span>
+              <div className="relative h-14 w-14">
+                <Image
+                  src="/logo.png"
+                  alt="BrainForge Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-[#114a78] leading-tight">
+                  BrainForge
+                </span>
+              </div>
             </div>
             <p className="max-w-xs text-lg text-text-secondary">
               Making technology and learning accessible for everyone, at any

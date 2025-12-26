@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { useState } from "react";
 
@@ -16,13 +17,20 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-6 lg:px-10">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-4">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <span className="material-symbols-outlined text-3xl">school</span>
+        <Link href="/" className="flex items-center gap-3">
+          <div className="relative h-12 w-12">
+            <Image
+              src="/logo.png"
+              alt="BrainForge Logo"
+              fill
+              className="object-contain"
+            />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-text-main">
-            BrainForge
-          </span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold tracking-tight text-[#114a78] leading-tight">
+              BrainForge
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}

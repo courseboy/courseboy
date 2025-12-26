@@ -119,7 +119,7 @@ function CourseContent({ course, duration }: CourseContentProps) {
           href={`/courses/${course.id}`}
           className="rounded-lg bg-primary px-6 py-2.5 font-bold text-white transition-colors hover:bg-blue-600"
         >
-          Start Learning
+          View Course
         </Link>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getDifficultyColor } from "../constants";
 
 interface Course {
   id: number;
@@ -8,6 +7,7 @@ interface Course {
   description: string;
   coverImg: string;
   requiredRole: string;
+  requiredPrivilege?: string;
   lessonsCount: number;
   averageRating: number;
   feedbacksCount: number;
@@ -38,7 +38,6 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-  const difficultyColor = getDifficultyColor(course.difficulty);
   const duration = formatDuration(course.totalDurationSeconds);
 
   return (
@@ -46,8 +45,7 @@ export function CourseCard({ course }: CourseCardProps) {
       <CourseImage
         coverImg={course.coverImg}
         name={course.name}
-        difficulty={course.difficulty}
-        difficultyColor={difficultyColor}
+        requiredPrivilege={course.requiredPrivilege}
       />
       <CourseContent course={course} duration={duration} />
     </article>
@@ -57,26 +55,20 @@ export function CourseCard({ course }: CourseCardProps) {
 interface CourseImageProps {
   coverImg: string;
   name: string;
-  difficulty?: string;
-  difficultyColor: string;
+  requiredPrivilege?: string;
 }
 
-function CourseImage({
-  coverImg,
-  name,
-  difficulty,
-  difficultyColor,
-}: CourseImageProps) {
+function CourseImage({ coverImg, name, requiredPrivilege }: CourseImageProps) {
   return (
     <div className="relative h-56 overflow-hidden">
-      {/* Difficulty Badge */}
-      <div className="absolute left-4 top-4 z-10">
-        <span
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold text-white shadow-sm ${difficultyColor}`}
-        >
-          {difficulty || "Beginner"}
-        </span>
-      </div>
+      {/* Required Privilege Badge */}
+      {requiredPrivilege && (
+        <div className="absolute left-4 top-4 z-10">
+          <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-sm font-bold text-white shadow-sm">
+            {requiredPrivilege}
+          </span>
+        </div>
+      )}
 
       {coverImg ? (
         <Image

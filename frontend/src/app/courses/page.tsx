@@ -12,6 +12,7 @@ interface Course {
   description: string;
   coverImg: string;
   requiredRole: string;
+  requiredPrivilege?: string;
   lessonsCount: number;
   averageRating: number;
   feedbacksCount: number;

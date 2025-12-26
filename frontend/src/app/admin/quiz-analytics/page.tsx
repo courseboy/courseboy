@@ -22,10 +22,11 @@ export default function QuizAnalyticsPage() {
 
   const { data: courses = [] } = useCourses();
   const { availableQuizzes } = useAvailableQuizzes(filters.selectedCourseId);
-  const { data: analytics, isLoading, error } = useQuizAnalytics(
-    filters.selectedCourseId,
-    filters.selectedQuizId
-  );
+  const {
+    data: analytics,
+    isLoading,
+    error,
+  } = useQuizAnalytics(filters.selectedCourseId, filters.selectedQuizId);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -77,7 +78,9 @@ export default function QuizAnalyticsPage() {
         <StatCard
           title="Pass Rate"
           value={`${stats?.passRate || 0}%`}
-          subtitle={`${stats?.passedCount || 0} passed, ${stats?.failedCount || 0} failed`}
+          subtitle={`${stats?.passedCount || 0} passed, ${
+            stats?.failedCount || 0
+          } failed`}
           icon="check_circle"
           color="green"
         />
@@ -97,13 +100,17 @@ export default function QuizAnalyticsPage() {
 
       {/* Performance Charts Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ScoreDistributionCard distribution={analytics?.scoreDistribution || []} />
+        <ScoreDistributionCard
+          distribution={analytics?.scoreDistribution || []}
+        />
         <QuizPerformanceCard quizzes={analytics?.quizPerformance || []} />
       </div>
 
       {/* Details Row */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <RecentSubmissionsCard submissions={analytics?.recentSubmissions || []} />
+        <RecentSubmissionsCard
+          submissions={analytics?.recentSubmissions || []}
+        />
         <StrugglingUsersCard users={analytics?.strugglingUsers || []} />
       </div>
     </div>

@@ -27,13 +27,17 @@ function SubmissionRow({ submission }: SubmissionRowProps) {
         </div>
       </td>
       <td className="py-3 text-center">
-        <span className="font-semibold text-gray-900">{submission.percentage}%</span>
+        <span className="font-semibold text-gray-900">
+          {submission.percentage}%
+        </span>
         <span className="ml-1 text-xs text-gray-500">
           ({submission.score}/{submission.maxScore})
         </span>
       </td>
       <td className="py-3 text-center">
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusStyle}`}>
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusStyle}`}
+        >
           {statusText}
         </span>
       </td>
@@ -56,10 +60,14 @@ const TABLE_HEADERS = [
   { label: "Time", align: "right" as const },
 ];
 
-export function RecentSubmissionsCard({ submissions }: RecentSubmissionsCardProps) {
+export function RecentSubmissionsCard({
+  submissions,
+}: RecentSubmissionsCardProps) {
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Recent Submissions</h2>
+      <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        Recent Submissions
+      </h2>
       {submissions.length === 0 ? (
         <p className="py-4 text-center text-gray-500">No submissions yet</p>
       ) : (

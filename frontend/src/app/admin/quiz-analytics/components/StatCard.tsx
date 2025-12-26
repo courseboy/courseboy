@@ -15,7 +15,13 @@ const COLOR_STYLES: Record<StatCardColor, string> = {
   orange: "bg-orange-100 text-orange-600",
 };
 
-export function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  color,
+}: StatCardProps) {
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">

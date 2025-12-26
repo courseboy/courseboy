@@ -28,8 +28,12 @@ interface UseAnalyticsFiltersReturn {
  * Manages filter state for course and quiz selection
  */
 export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
-  const [selectedCourseId, setSelectedCourseId] = useState<number | undefined>(undefined);
-  const [selectedQuizId, setSelectedQuizId] = useState<number | undefined>(undefined);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | undefined>(
+    undefined
+  );
+  const [selectedQuizId, setSelectedQuizId] = useState<number | undefined>(
+    undefined
+  );
 
   const handleCourseChange = (courseId: number | undefined) => {
     setSelectedCourseId(courseId);
@@ -45,7 +49,8 @@ export function useAnalyticsFilters(): UseAnalyticsFiltersReturn {
     setSelectedQuizId(undefined);
   };
 
-  const hasActiveFilters = selectedCourseId !== undefined || selectedQuizId !== undefined;
+  const hasActiveFilters =
+    selectedCourseId !== undefined || selectedQuizId !== undefined;
 
   return {
     selectedCourseId,
@@ -77,7 +82,10 @@ export function useAvailableQuizzes(courseId: number | undefined) {
   const query = useQuery<QuizAnalyticsOverview>({
     queryKey: ["quiz-analytics-quizzes", courseId],
     queryFn: async () => {
-      const response = await adminCourseApi.getAnalyticsOverview(courseId, undefined);
+      const response = await adminCourseApi.getAnalyticsOverview(
+        courseId,
+        undefined
+      );
       return response.data.data;
     },
   });
@@ -90,11 +98,17 @@ export function useAvailableQuizzes(courseId: number | undefined) {
 /**
  * Fetches filtered analytics data based on selected course and quiz
  */
-export function useQuizAnalytics(courseId: number | undefined, quizId: number | undefined) {
+export function useQuizAnalytics(
+  courseId: number | undefined,
+  quizId: number | undefined
+) {
   return useQuery<QuizAnalyticsOverview>({
     queryKey: ["quiz-analytics", courseId, quizId],
     queryFn: async () => {
-      const response = await adminCourseApi.getAnalyticsOverview(courseId, quizId);
+      const response = await adminCourseApi.getAnalyticsOverview(
+        courseId,
+        quizId
+      );
       return response.data.data;
     },
   });

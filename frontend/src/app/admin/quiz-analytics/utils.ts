@@ -50,6 +50,9 @@ export function getPassRateStyle(passRate: number): string {
 /**
  * Extracts display name from user object (username or email prefix)
  */
-export function getUserDisplayName(user: { username?: string | null; email: string }): string {
+export function getUserDisplayName(user: {
+  username?: string | null;
+  email: string;
+}): string {
   return user.username || user.email.split("@")[0];
 }

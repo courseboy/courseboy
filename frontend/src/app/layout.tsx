@@ -8,7 +8,7 @@ import { Footer } from "@/components/layout/footer";
 const lexend = Lexend({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SeniorLearn - Learn at Your Own Pace",
+  title: "BrainForge - Learn at Your Own Pace",
   description:
     "Simple video lessons designed for seniors. Easy-to-follow courses on technology, hobbies, and health.",
 };

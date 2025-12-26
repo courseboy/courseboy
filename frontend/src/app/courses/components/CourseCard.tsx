@@ -14,6 +14,23 @@ interface Course {
   category?: string;
   duration?: string;
   difficulty?: string;
+  totalDurationSeconds?: number;
+}
+
+/**
+ * Formats duration in seconds to human-readable format (e.g., "1h 30m" or "45m")
+ */
+function formatDuration(seconds: number | undefined): string {
+  if (!seconds || seconds === 0) return "0m";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+
+  return `${minutes}m`;
 }
 
 interface CourseCardProps {
@@ -22,7 +39,7 @@ interface CourseCardProps {
 
 export function CourseCard({ course }: CourseCardProps) {
   const difficultyColor = getDifficultyColor(course.difficulty);
-  const duration = course.duration || `${course.lessonsCount * 15} mins`;
+  const duration = formatDuration(course.totalDurationSeconds);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-primary/30 hover:shadow-xl">

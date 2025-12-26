@@ -219,6 +219,15 @@ export class CourseService {
         orderBy: { createdAt: "desc" },
         include: {
           requiredPrivilege: true,
+          courseCategories: {
+            include: {
+              lessons: {
+                select: {
+                  durationSeconds: true,
+                },
+              },
+            },
+          },
           _count: {
             select: {
               lessons: true,
@@ -243,17 +252,30 @@ export class CourseService {
       return acc;
     }, {} as Record<number, number>);
 
-    const formattedCourses = courses.map((course) => ({
-      id: course.id,
-      name: course.name,
-      description: course.description,
-      coverImg: course.coverImg,
-      requiredPrivilege: course.requiredPrivilege?.name,
-      lessonsCount: course._count.lessons,
-      feedbacksCount: course._count.courseFeedbacks,
-      averageRating: ratingsMap[course.id] || 0,
-      createdAt: course.createdAt,
-    }));
+    const formattedCourses = courses.map((course) => {
+      // Calculate total duration
+      const totalDuration = course.courseCategories.reduce((sum, cat) => {
+        return (
+          sum +
+          cat.lessons.reduce((lessonSum, lesson) => {
+            return lessonSum + (lesson.durationSeconds || 0);
+          }, 0)
+        );
+      }, 0);
+
+      return {
+        id: course.id,
+        name: course.name,
+        description: course.description,
+        coverImg: course.coverImg,
+        requiredPrivilege: course.requiredPrivilege?.name,
+        lessonsCount: course._count.lessons,
+        feedbacksCount: course._count.courseFeedbacks,
+        averageRating: ratingsMap[course.id] || 0,
+        totalDurationSeconds: totalDuration,
+        createdAt: course.createdAt,
+      };
+    });
 
     return {
       data: formattedCourses,

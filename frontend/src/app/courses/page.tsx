@@ -18,6 +18,7 @@ interface Course {
   category?: string;
   duration?: string;
   difficulty?: string;
+  totalDurationSeconds?: number;
 }
 
 export default function CoursesPage() {

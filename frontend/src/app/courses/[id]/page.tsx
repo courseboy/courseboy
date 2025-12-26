@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -11,11 +12,28 @@ import { formatDuration } from "@/lib/utils";
 export default function CourseDetailPage() {
   const params = useParams();
   const courseId = parseInt(params.id as string);
+  const [openCategories, setOpenCategories] = useState<Set<number>>(new Set());
+
+  const toggleCategory = (categoryId: number) => {
+    setOpenCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["course", courseId],
     queryFn: async () => {
       const response = await courseApi.getById(courseId);
+      // Open first category by default
+      if (response.data.data?.categories?.[0]) {
+        setOpenCategories(new Set([response.data.data.categories[0].id]));
+      }
       return response.data.data;
     },
   });
@@ -183,100 +201,112 @@ export default function CourseDetailPage() {
                 Course Content
               </h2>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                {course.categories?.map((category: any, index: number) => (
-                  <details
-                    key={category.id}
-                    className="group"
-                    open={index === 0}
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between bg-background-section/50 p-5 transition-colors hover:bg-background-section">
-                      <span className="text-lg font-bold text-text-main">
-                        {category.name}
-                      </span>
-                      <span className="transition group-open:rotate-180">
-                        <span className="material-symbols-outlined">
+                {course.categories?.map((category: any) => {
+                  const isOpen = openCategories.has(category.id);
+                  return (
+                    <div key={category.id}>
+                      <button
+                        onClick={() => toggleCategory(category.id)}
+                        className="flex w-full cursor-pointer items-center justify-between bg-background-section/50 p-5 transition-colors hover:bg-background-section"
+                      >
+                        <span className="text-lg font-bold text-text-main">
+                          {category.name}
+                        </span>
+                        <span
+                          className={`material-symbols-outlined transition-transform duration-300 ${
+                            isOpen ? "scale-y-[-1]" : "scale-y-100"
+                          }`}
+                        >
                           expand_more
                         </span>
-                      </span>
-                    </summary>
-                    <div className="flex flex-col gap-1 p-5 pt-2 text-text-secondary">
-                      {category.lessons.map((lesson: any) => {
-                        const canAccess =
-                          lesson.isFreePreview || course.hasAccess;
+                      </button>
+                      <div
+                        className={`grid transition-all duration-300 ease-in-out ${
+                          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="flex flex-col gap-1 p-5 pt-2 text-text-secondary">
+                            {category.lessons.map((lesson: any) => {
+                              const canAccess =
+                                lesson.isFreePreview || course.hasAccess;
 
-                        const lessonRow = (
-                          <div className="flex items-center justify-between border-b border-gray-100 py-3 last:border-0">
-                            <div className="flex items-center gap-3">
-                              {canAccess ? (
-                                <span className="material-symbols-outlined text-primary">
-                                  play_circle
-                                </span>
+                              const lessonRow = (
+                                <div className="flex items-center justify-between border-b border-gray-100 py-3 last:border-0">
+                                  <div className="flex items-center gap-3">
+                                    {canAccess ? (
+                                      <span className="material-symbols-outlined text-primary">
+                                        play_circle
+                                      </span>
+                                    ) : (
+                                      <span className="material-symbols-outlined text-gray-400">
+                                        lock
+                                      </span>
+                                    )}
+                                    <span className="text-lg text-text-main">
+                                      {lesson.title}
+                                    </span>
+                                    {lesson.isFreePreview && (
+                                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-sm font-medium text-green-700">
+                                        Free
+                                      </span>
+                                    )}
+                                  </div>
+                                  {lesson.durationSeconds && (
+                                    <span className="text-base">
+                                      {formatDuration(lesson.durationSeconds)}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+
+                              return canAccess ? (
+                                <Link
+                                  key={lesson.id}
+                                  href={`/courses/${courseId}/learn?lesson=${lesson.id}`}
+                                  className="rounded-lg transition-colors hover:bg-primary/5"
+                                >
+                                  {lessonRow}
+                                </Link>
                               ) : (
-                                <span className="material-symbols-outlined text-gray-400">
-                                  lock
-                                </span>
-                              )}
-                              <span className="text-lg text-text-main">
-                                {lesson.title}
-                              </span>
-                              {lesson.isFreePreview && (
-                                <span className="rounded-full bg-green-100 px-2 py-0.5 text-sm font-medium text-green-700">
-                                  Free
-                                </span>
-                              )}
-                            </div>
-                            {lesson.durationSeconds && (
-                              <span className="text-base">
-                                {formatDuration(lesson.durationSeconds)}
-                              </span>
+                                <div
+                                  key={lesson.id}
+                                  className="cursor-not-allowed opacity-60"
+                                >
+                                  {lessonRow}
+                                </div>
+                              );
+                            })}
+
+                            {category.quizzes?.length > 0 && (
+                              <div className="mt-3 border-t border-gray-100 pt-3">
+                                <h4 className="mb-2 flex items-center gap-2 text-base font-bold text-text-secondary">
+                                  <span className="material-symbols-outlined">
+                                    quiz
+                                  </span>
+                                  Quizzes
+                                </h4>
+                                {category.quizzes.map((quiz: any) => (
+                                  <div
+                                    key={quiz.id}
+                                    className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                                  >
+                                    <span className="text-lg text-text-main">
+                                      {quiz.name}
+                                    </span>
+                                    <span className="text-base text-text-secondary">
+                                      Max: {quiz.maxScore} pts
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                        );
-
-                        return canAccess ? (
-                          <Link
-                            key={lesson.id}
-                            href={`/courses/${courseId}/learn?lesson=${lesson.id}`}
-                            className="rounded-lg transition-colors hover:bg-primary/5"
-                          >
-                            {lessonRow}
-                          </Link>
-                        ) : (
-                          <div
-                            key={lesson.id}
-                            className="cursor-not-allowed opacity-60"
-                          >
-                            {lessonRow}
-                          </div>
-                        );
-                      })}
-
-                      {category.quizzes?.length > 0 && (
-                        <div className="mt-3 border-t border-gray-100 pt-3">
-                          <h4 className="mb-2 flex items-center gap-2 text-base font-bold text-text-secondary">
-                            <span className="material-symbols-outlined">
-                              quiz
-                            </span>
-                            Quizzes
-                          </h4>
-                          {category.quizzes.map((quiz: any) => (
-                            <div
-                              key={quiz.id}
-                              className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
-                            >
-                              <span className="text-lg text-text-main">
-                                {quiz.name}
-                              </span>
-                              <span className="text-base text-text-secondary">
-                                Max: {quiz.maxScore} pts
-                              </span>
-                            </div>
-                          ))}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </details>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

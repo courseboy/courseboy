@@ -69,6 +69,17 @@ export default function CourseDetailPage() {
       (sum: number, cat: any) => sum + cat.lessons.length,
       0
     ) || 0;
+  const totalDurationSeconds =
+    course.categories?.reduce(
+      (sum: number, cat: any) =>
+        sum +
+        cat.lessons.reduce(
+          (lessonSum: number, lesson: any) =>
+            lessonSum + (lesson.durationSeconds || 0),
+          0
+        ),
+      0
+    ) || 0;
 
   return (
     <main className="min-h-screen bg-background-light">
@@ -114,13 +125,13 @@ export default function CourseDetailPage() {
           {/* Left Column: Content */}
           <div className="flex flex-col gap-10 lg:col-span-2">
             {/* Video/Image Hero */}
-            <div className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-xl bg-black shadow-lg">
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black shadow-lg">
               {course.coverImg ? (
                 <Image
                   src={course.coverImg}
                   alt={course.name}
                   fill
-                  className="object-cover opacity-80 transition-opacity group-hover:opacity-60"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gray-800">
@@ -129,50 +140,16 @@ export default function CourseDetailPage() {
                   </span>
                 </div>
               )}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex h-20 w-20 transform items-center justify-center rounded-full bg-primary/90 text-white shadow-xl transition-transform group-hover:scale-110">
-                  <span className="material-symbols-outlined !text-[48px]">
-                    play_arrow
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Course Title & Basic Info */}
             <div className="flex flex-col gap-4">
-              <h1 className="text-3xl font-extrabold leading-tight text-text-main sm:text-4xl md:text-5xl">
+              <h1 className="text-xl font-extrabold leading-tight text-text-main sm:text-2xl md:text-3xl">
                 {course.name}
               </h1>
-              <p className="text-xl leading-relaxed text-text-secondary">
+              <p className="text-base leading-relaxed text-text-secondary">
                 {course.description}
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-6">
-                {course.averageRating > 0 && (
-                  <div className="flex items-center gap-1 rounded-lg bg-accent/10 px-3 py-1">
-                    <span className="material-symbols-outlined text-accent">
-                      star
-                    </span>
-                    <span className="text-lg font-bold text-text-main">
-                      {course.averageRating.toFixed(1)}
-                    </span>
-                    <span className="text-base text-text-secondary">
-                      ({course.feedbacksCount} reviews)
-                    </span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <span className="material-symbols-outlined">menu_book</span>
-                  <span className="text-lg">{totalLessons} lessons</span>
-                </div>
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <span className="material-symbols-outlined">
-                    signal_cellular_alt
-                  </span>
-                  <span className="text-lg">
-                    {course.requiredRole || "All Levels"}
-                  </span>
-                </div>
-              </div>
 
               {/* Progress Bar */}
               {course.userProgress && (
@@ -197,9 +174,25 @@ export default function CourseDetailPage() {
 
             {/* Course Content Accordion */}
             <div className="flex flex-col gap-6">
-              <h2 className="text-2xl font-bold text-text-main">
-                Course Content
-              </h2>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-2xl font-bold text-text-main">
+                  Course Content
+                </h2>
+                <div className="flex items-center gap-4 text-text-secondary">
+                  <span className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[20px]">
+                      menu_book
+                    </span>
+                    {totalLessons} lessons
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[20px]">
+                      schedule
+                    </span>
+                    {formatDuration(totalDurationSeconds)} total
+                  </span>
+                </div>
+              </div>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
                 {course.categories?.map((category: any) => {
                   const isOpen = openCategories.has(category.id);
@@ -350,6 +343,28 @@ export default function CourseDetailPage() {
                 <div className="h-px w-full bg-gray-200" />
 
                 <div className="mt-2 flex flex-col gap-3 text-text-secondary">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">
+                      menu_book
+                    </span>
+                    <span className="text-lg">{totalLessons} lessons</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">
+                      schedule
+                    </span>
+                    <span className="text-lg">
+                      {formatDuration(totalDurationSeconds)} total length
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">
+                      signal_cellular_alt
+                    </span>
+                    <span className="text-lg">
+                      {course.requiredRole || "All Levels"}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-primary">
                       all_inclusive

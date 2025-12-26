@@ -53,7 +53,7 @@ export default function HomePage() {
             <div className="order-2 flex flex-col gap-8 lg:order-1">
               <div className="flex flex-col gap-4">
                 <span className="w-fit rounded-full bg-secondary/20 px-4 py-2 text-base font-bold text-teal-700">
-                  Welcome to SeniorLearn
+                  Welcome to BrainForge
                 </span>
                 <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight text-text-main sm:text-5xl lg:text-6xl">
                   Learn something new today, at your own pace.

@@ -21,7 +21,7 @@ export function Navbar() {
             <span className="material-symbols-outlined text-3xl">school</span>
           </div>
           <span className="text-2xl font-bold tracking-tight text-text-main">
-            SeniorLearn
+            BrainForge
           </span>
         </Link>
 

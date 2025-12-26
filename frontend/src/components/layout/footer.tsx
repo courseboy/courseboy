@@ -12,7 +12,7 @@ export function Footer() {
                 school
               </span>
               <span className="text-2xl font-bold text-text-main">
-                SeniorLearn
+                BrainForge
               </span>
             </div>
             <p className="max-w-xs text-lg text-text-secondary">
@@ -64,7 +64,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-gray-100 pt-8 text-center md:text-left">
           <p className="text-base text-text-secondary">
-            © {new Date().getFullYear()} SeniorLearn. All rights reserved.
+            © {new Date().getFullYear()} BrainForge. All rights reserved.
           </p>
         </div>
       </div>

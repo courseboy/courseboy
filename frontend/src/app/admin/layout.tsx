@@ -23,6 +23,11 @@ const sidebarLinks = [
     icon: "book_2",
   },
   {
+    name: "Quiz Analytics",
+    href: "/admin/quiz-analytics",
+    icon: "analytics",
+  },
+  {
     name: "Privileges",
     href: "/admin/privileges",
     icon: "verified_user",

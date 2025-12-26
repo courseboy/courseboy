@@ -204,6 +204,79 @@ export const adminCourseApi = {
   deleteLesson: (lessonId: number) => api.delete(`/lessons/${lessonId}`),
   reorderLessons: (categoryId: number, lessonIds: number[]) =>
     api.put(`/courses/categories/${categoryId}/lessons/reorder`, { lessonIds }),
+
+  // Quiz management
+  createQuiz: (
+    categoryId: number,
+    data: {
+      name: string;
+      description?: string;
+      passingScore?: number;
+      timeLimit?: number | null;
+    }
+  ) => api.post(`/quizzes/category/${categoryId}`, data),
+  updateQuiz: (
+    quizId: number,
+    data: {
+      name?: string;
+      description?: string;
+      passingScore?: number;
+      timeLimit?: number | null;
+    }
+  ) => api.patch(`/quizzes/${quizId}`, data),
+  deleteQuiz: (quizId: number) => api.delete(`/quizzes/${quizId}`),
+  getQuizAdmin: (quizId: number) => api.get(`/quizzes/${quizId}/admin`),
+  getQuizSubmissions: (quizId: number) =>
+    api.get(`/quizzes/${quizId}/submissions`),
+
+  // Question management
+  createQuestion: (
+    quizId: number,
+    data: {
+      questionText: string;
+      questionType?: "multiple_choice" | "true_false";
+      options: string[];
+      correctAnswer: number;
+      points?: number;
+    }
+  ) => api.post(`/quizzes/${quizId}/questions`, data),
+  updateQuestion: (
+    questionId: number,
+    data: {
+      questionText?: string;
+      questionType?: "multiple_choice" | "true_false";
+      options?: string[];
+      correctAnswer?: number;
+      points?: number;
+    }
+  ) => api.patch(`/quizzes/questions/${questionId}`, data),
+  deleteQuestion: (questionId: number) =>
+    api.delete(`/quizzes/questions/${questionId}`),
+  reorderQuestions: (quizId: number, questionIds: number[]) =>
+    api.post(`/quizzes/${quizId}/questions/reorder`, { questionIds }),
+
+  // Quiz analytics
+  getAnalyticsOverview: (courseId?: number, quizId?: number) => {
+    const params = new URLSearchParams();
+    if (courseId) params.append("courseId", courseId.toString());
+    if (quizId) params.append("quizId", quizId.toString());
+    const queryString = params.toString();
+    return api.get(
+      `/quizzes/analytics/overview${queryString ? `?${queryString}` : ""}`
+    );
+  },
+  getQuestionAnalytics: (quizId: number) =>
+    api.get(`/quizzes/${quizId}/analytics`),
+};
+
+// Quiz API (for users)
+export const quizApi = {
+  getById: (id: number) => api.get(`/quizzes/${id}`),
+  submit: (id: number, answers: Record<number, number>, timeTaken?: number) =>
+    api.post(`/quizzes/${id}/submit`, { answers, timeTaken }),
+  getResults: (id: number) => api.get(`/quizzes/${id}/results`),
+  getUserSubmissions: (courseId: number) =>
+    api.get(`/quizzes/course/${courseId}/submissions`),
 };
 
 export default api;

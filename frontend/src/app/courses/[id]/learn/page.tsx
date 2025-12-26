@@ -7,7 +7,7 @@ import Link from "next/link";
 import { courseApi, lessonApi } from "@/lib/api";
 import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { LoadingScreen, Spinner } from "@/components/ui/spinner";
-import { Course, CourseCategory, Lesson, LessonProgress } from "@/types";
+import { Course, CourseCategory, Lesson, LessonProgress, Quiz } from "@/types";
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "0:00";
@@ -23,6 +23,9 @@ interface LessonWithProgress extends Lesson {
 interface CategoryWithProgress extends CourseCategory {
   lessons: LessonWithProgress[];
 }
+
+// Quiz type already has isCompleted, hasPassed, and userSubmission
+type QuizWithStatus = Quiz;
 
 interface LessonDetail {
   id: number;
@@ -440,7 +443,7 @@ export default function LearnCoursePage() {
               {course.categories?.map((category) => (
                 <div
                   key={category.id}
-                  className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                  className="rounded-xl border border-gray-200 bg-white"
                 >
                   {/* Category Header */}
                   <button
@@ -528,6 +531,136 @@ export default function LearnCoursePage() {
                           </button>
                         );
                       })}
+
+                      {/* Quizzes Section */}
+                      {category.quizzes && category.quizzes.length > 0 && (
+                        <div className="mt-3 border-t border-gray-200 pt-3">
+                          <div className="mb-2 flex items-center gap-1.5 px-3">
+                            <span className="material-symbols-outlined text-sm text-accent">
+                              quiz
+                            </span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                              Quizzes
+                            </span>
+                          </div>
+                          {category.quizzes.map((quiz: QuizWithStatus) => {
+                            const canTakeQuiz = course.hasAccess;
+                            const isCompleted = quiz.isCompleted;
+                            const hasPassed = quiz.hasPassed;
+                            const submission = quiz.userSubmission;
+
+                            return (
+                              <div
+                                key={quiz.id}
+                                className={`mb-2 flex items-start gap-3 rounded-lg border p-3 ${
+                                  isCompleted && hasPassed
+                                    ? "border-green-300 bg-green-50"
+                                    : isCompleted && !hasPassed
+                                    ? "border-orange-300 bg-orange-50"
+                                    : canTakeQuiz
+                                    ? "border-blue-300 bg-blue-50"
+                                    : "border-gray-200 bg-gray-100 opacity-50"
+                                }`}
+                              >
+                                <div
+                                  className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+                                    isCompleted && hasPassed
+                                      ? "bg-green-500 text-white"
+                                      : isCompleted && !hasPassed
+                                      ? "bg-orange-500 text-white"
+                                      : canTakeQuiz
+                                      ? "bg-accent/20 text-accent"
+                                      : "bg-gray-200 text-gray-400"
+                                  }`}
+                                >
+                                  <span className="material-symbols-outlined text-sm">
+                                    {isCompleted && hasPassed
+                                      ? "check"
+                                      : isCompleted && !hasPassed
+                                      ? "refresh"
+                                      : canTakeQuiz
+                                      ? "assignment"
+                                      : "lock"}
+                                  </span>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p
+                                    className={`truncate text-sm font-medium ${
+                                      isCompleted && hasPassed
+                                        ? "text-green-700"
+                                        : isCompleted && !hasPassed
+                                        ? "text-orange-700"
+                                        : "text-text-main"
+                                    }`}
+                                  >
+                                    {quiz.name}
+                                  </p>
+                                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                                    {submission ? (
+                                      <>
+                                        <span
+                                          className={`rounded px-1.5 py-0.5 text-xs font-bold ${
+                                            hasPassed
+                                              ? "bg-green-100 text-green-700"
+                                              : "bg-orange-100 text-orange-700"
+                                          }`}
+                                        >
+                                          {submission.percentage}% (
+                                          {submission.score}/
+                                          {submission.maxScore})
+                                        </span>
+                                        {hasPassed && (
+                                          <span className="text-xs text-green-600">
+                                            ✓ Passed
+                                          </span>
+                                        )}
+                                        {!hasPassed && (
+                                          <span className="text-xs text-orange-600">
+                                            Need {quiz.passingScore}% to pass
+                                          </span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-xs text-text-secondary">
+                                        Pass: {quiz.passingScore}% •{" "}
+                                        {quiz._count?.questions || 0} questions
+                                      </span>
+                                    )}
+                                  </div>
+                                  {canTakeQuiz && (
+                                    <div className="mt-2 flex gap-2">
+                                      {!isCompleted || !hasPassed ? (
+                                        <Link
+                                          href={`/courses/${course.id}/quiz?quiz=${quiz.id}`}
+                                          className="flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-600"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">
+                                            quiz
+                                          </span>
+                                          {isCompleted
+                                            ? "Retake Quiz"
+                                            : "Take Quiz"}
+                                        </Link>
+                                      ) : null}
+                                      {isCompleted && (
+                                        <Link
+                                          href={`/courses/${course.id}/quiz/results?quiz=${quiz.id}`}
+                                          className="flex items-center gap-1 rounded-md bg-gray-500 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-gray-600"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">
+                                            visibility
+                                          </span>
+                                          View Results
+                                        </Link>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

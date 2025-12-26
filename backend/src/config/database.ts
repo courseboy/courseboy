@@ -1,3 +1,4 @@
+// Database configuration - Prisma Client
 import { PrismaClient } from "@prisma/client";
 import { config } from "./index.js";
 

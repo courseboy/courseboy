@@ -153,27 +153,48 @@ model CourseFeedback {
 }
 
 model Quiz {
-  id               Int    @id @default(autoincrement())
-  courseCategoryId Int    @map("course_category_id")
+  id               Int     @id @default(autoincrement())
+  courseCategoryId Int     @map("course_category_id")
   name             String
-  questionLink     String @map("question_link")
-  maxScore         Int    @default(100) @map("max_score")
+  description      String?
+  passingScore     Int     @default(70) @map("passing_score") // Percentage to pass
+  timeLimit        Int?    @map("time_limit") // Time limit in minutes (null = no limit)
 
   // Relations
   courseCategory  CourseCategory   @relation(fields: [courseCategoryId], references: [id], onDelete: Cascade)
+  questions       QuizQuestion[]
   quizSubmissions QuizSubmission[]
 
   @@map("quiz")
 }
 
+model QuizQuestion {
+  id            Int      @id @default(autoincrement())
+  quizId        Int      @map("quiz_id")
+  questionText  String   @map("question_text")
+  questionType  String   @default("multiple_choice") @map("question_type") // multiple_choice, true_false
+  options       String[] // Array of option texts
+  correctAnswer Int      @map("correct_answer") // Index of correct option (0-based)
+  points        Int      @default(1)
+  orderIndex    Int      @default(0) @map("order_index")
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_question")
+}
+
 model QuizSubmission {
-  id                 Int      @id @default(autoincrement())
-  userId             Int      @map("user_id")
-  quizId             Int      @map("quiz_id")
-  answerLink         String?  @map("answer_link")
-  score              Int?
-  submittedAt        DateTime @default(now()) @map("submitted_at")
-  instructorFeedback String?  @map("instructor_feedback")
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  quizId      Int      @map("quiz_id")
+  score       Int      // Score achieved
+  maxScore    Int      @map("max_score") // Maximum possible score
+  percentage  Int      // Score percentage
+  passed      Boolean  @default(false)
+  answers     Json?    // User's answers: { questionId: selectedOption }
+  timeTaken   Int?     @map("time_taken") // Time taken in seconds
+  submittedAt DateTime @default(now()) @map("submitted_at")
 
   // Relations
   user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)

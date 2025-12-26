@@ -44,6 +44,9 @@ export class CourseService {
               lessons: {
                 orderBy: { orderIndex: "asc" },
               },
+              quizzes: {
+                orderBy: { id: "asc" },
+              },
             },
           },
           _count: {
@@ -91,6 +94,13 @@ export class CourseService {
             durationSeconds: lesson.durationSeconds,
             isFreePreview: lesson.isFreePreview,
             orderIndex: lesson.orderIndex,
+          })),
+          quizzes: cat.quizzes.map((quiz) => ({
+            id: quiz.id,
+            name: quiz.name,
+            description: quiz.description,
+            passingScore: quiz.passingScore,
+            timeLimit: quiz.timeLimit,
           })),
         })),
         createdAt: course.createdAt,
@@ -315,6 +325,47 @@ export class CourseService {
       };
     }
 
+    // Get user's quiz submissions if logged in
+    let quizSubmissions: Record<
+      number,
+      {
+        isCompleted: boolean;
+        score: number;
+        maxScore: number;
+        percentage: number;
+        passed: boolean;
+      }
+    > = {};
+    if (userId) {
+      const submissions = await prisma.quizSubmission.findMany({
+        where: {
+          userId,
+          quiz: {
+            courseCategory: {
+              courseId,
+            },
+          },
+        },
+        select: {
+          quizId: true,
+          score: true,
+          maxScore: true,
+          percentage: true,
+          passed: true,
+        },
+      });
+      quizSubmissions = submissions.reduce((acc, sub) => {
+        acc[sub.quizId] = {
+          isCompleted: true,
+          score: sub.score,
+          maxScore: sub.maxScore,
+          percentage: sub.percentage,
+          passed: sub.passed,
+        };
+        return acc;
+      }, {} as Record<number, { isCompleted: boolean; score: number; maxScore: number; percentage: number; passed: boolean }>);
+    }
+
     return {
       id: course.id,
       name: course.name,
@@ -340,11 +391,26 @@ export class CourseService {
           // Only show video URL if user has access or it's a free preview
           videoUrl: hasAccess || lesson.isFreePreview ? lesson.videoUrl : null,
         })),
-        quizzes: cat.quizzes.map((quiz) => ({
-          id: quiz.id,
-          name: quiz.name,
-          maxScore: quiz.maxScore,
-        })),
+        quizzes: cat.quizzes.map((quiz) => {
+          const submission = quizSubmissions[quiz.id];
+          return {
+            id: quiz.id,
+            name: quiz.name,
+            description: quiz.description,
+            passingScore: quiz.passingScore,
+            timeLimit: quiz.timeLimit,
+            isCompleted: submission?.isCompleted || false,
+            hasPassed: submission?.passed || false,
+            userSubmission: submission
+              ? {
+                  score: submission.score,
+                  maxScore: submission.maxScore,
+                  percentage: submission.percentage,
+                  passed: submission.passed,
+                }
+              : null,
+          };
+        }),
       })),
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,

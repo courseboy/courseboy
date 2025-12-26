@@ -4,12 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { courseApi } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/spinner";
-import {
-  CourseCard,
-  EmptyState,
-  CategoryFilters,
-  SearchBar,
-} from "./components";
+import { CourseCard, EmptyState, SearchBar } from "./components";
 
 interface Course {
   id: number;
@@ -27,7 +22,6 @@ interface Course {
 
 export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["courses"],
@@ -58,16 +52,13 @@ export default function CoursesPage() {
 
   const courses: Course[] = data?.data || [];
 
-  // Filter courses based on search and category
+  // Filter courses based on search
   const filteredCourses = courses.filter((course) => {
-    const matchesSearch =
+    return (
       searchQuery === "" ||
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      activeCategory === "all" ||
-      course.category?.toLowerCase() === activeCategory;
-    return matchesSearch && matchesCategory;
+      course.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
 
   return (
@@ -84,12 +75,6 @@ export default function CoursesPage() {
           </p>
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
         </section>
-
-        {/* Category Filters */}
-        <CategoryFilters
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-        />
 
         {/* Course Grid */}
         <section>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getCategoryStyle, getDifficultyColor } from "../constants";
+import { getDifficultyColor } from "../constants";
 
 interface Course {
   id: number;
@@ -21,7 +21,6 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-  const categoryStyle = getCategoryStyle(course.category);
   const difficultyColor = getDifficultyColor(course.difficulty);
   const duration = course.duration || `${course.lessonsCount * 15} mins`;
 
@@ -33,11 +32,7 @@ export function CourseCard({ course }: CourseCardProps) {
         difficulty={course.difficulty}
         difficultyColor={difficultyColor}
       />
-      <CourseContent
-        course={course}
-        categoryStyle={categoryStyle}
-        duration={duration}
-      />
+      <CourseContent course={course} duration={duration} />
     </article>
   );
 }
@@ -89,27 +84,12 @@ function CourseImage({
 
 interface CourseContentProps {
   course: Course;
-  categoryStyle: { text: string; icon: string };
   duration: string;
 }
 
-function CourseContent({
-  course,
-  categoryStyle,
-  duration,
-}: CourseContentProps) {
+function CourseContent({ course, duration }: CourseContentProps) {
   return (
     <div className="flex flex-1 flex-col p-6">
-      {/* Category */}
-      <div
-        className={`mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider ${categoryStyle.text}`}
-      >
-        <span className="material-symbols-outlined text-lg">
-          {categoryStyle.icon}
-        </span>
-        {course.category || "Technology"}
-      </div>
-
       {/* Title */}
       <h3 className="mb-3 text-2xl font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
         {course.name}

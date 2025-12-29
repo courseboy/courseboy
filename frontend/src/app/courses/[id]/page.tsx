@@ -196,15 +196,26 @@ export default function CourseDetailPage() {
               <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
                 {course.categories?.map((category: any) => {
                   const isOpen = openCategories.has(category.id);
+                  const categoryDuration = category.lessons.reduce(
+                    (sum: number, lesson: any) =>
+                      sum + (lesson.durationSeconds || 0),
+                    0
+                  );
                   return (
                     <div key={category.id}>
                       <button
                         onClick={() => toggleCategory(category.id)}
                         className="flex w-full cursor-pointer items-center justify-between bg-background-section/50 p-5 transition-colors hover:bg-background-section"
                       >
-                        <span className="text-lg font-bold text-text-main">
-                          {category.name}
-                        </span>
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="text-lg font-bold text-text-main">
+                            {category.name}
+                          </span>
+                          <span className="text-sm text-text-secondary">
+                            {category.lessons.length} lessons •{" "}
+                            {formatDuration(categoryDuration)}
+                          </span>
+                        </div>
                         <span
                           className={`material-symbols-outlined transition-transform duration-300 ${
                             isOpen ? "scale-y-[-1]" : "scale-y-100"

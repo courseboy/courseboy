@@ -168,7 +168,7 @@ export function CreateLessonModal({
             />
             <p className="text-xs text-[#6B7280]">
               Paste the Google Drive sharing link. Make sure the video is set to
-              "Anyone with the link can view".
+              &quot;Anyone with the link can view&quot;.
             </p>
             {videoUrl && (
               <div className="mt-2 p-2 bg-slate-50 rounded-lg text-xs">

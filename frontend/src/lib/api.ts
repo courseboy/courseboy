@@ -51,7 +51,7 @@ api.interceptors.response.use(
 
           return api(originalRequest);
         }
-      } catch (refreshError) {
+      } catch {
         // Refresh failed, clear tokens and redirect to login
         Cookies.remove("accessToken");
         Cookies.remove("refreshToken");

@@ -7,7 +7,6 @@ import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { userApi } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/spinner";
 import Link from "next/link";
-import Image from "next/image";
 
 type FilterType = "all" | "in-progress" | "completed";
 
@@ -25,7 +24,7 @@ interface CourseProgress {
 
 export default function MyCoursesPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const hydrated = useAuthHydration();
   const [filter, setFilter] = useState<FilterType>("all");
 

@@ -408,7 +408,7 @@ interface ManageQuestionsModalProps {
 }
 
 export function ManageQuestionsModal({
-  courseId,
+  // courseId, // Unused
   quizId,
   quizName,
   onClose,
@@ -648,14 +648,16 @@ function QuestionFormModal({
         correctAnswer: 0,
       }));
     }
-  }, [formData.questionType]);
+  }, [formData.questionType, formData.options.length]); // Added missing dependency
 
   const createMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => adminCourseApi.createQuestion(quizId, data),
     onSuccess,
   });
 
   const updateMutation = useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) =>
       adminCourseApi.updateQuestion(question!.id, data),
     onSuccess,
@@ -733,7 +735,7 @@ function QuestionFormModal({
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  questionType: e.target.value as any,
+                  questionType: e.target.value as "multiple_choice" | "true_false",
                 })
               }
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-[#3A7BD5] focus:outline-none focus:ring-1 focus:ring-[#3A7BD5]"

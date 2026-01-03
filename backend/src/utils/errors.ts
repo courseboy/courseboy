@@ -1,4 +1,3 @@
-import { Request, Response, NextFunction } from "express";
 
 export class AppError extends Error {
   public readonly statusCode: number;

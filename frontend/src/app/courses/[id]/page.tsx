@@ -8,6 +8,7 @@ import Link from "next/link";
 import { courseApi } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { formatDuration } from "@/lib/utils";
+import { CourseCategory, Lesson, Quiz } from "@/types";
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -66,15 +67,15 @@ export default function CourseDetailPage() {
   const course = data;
   const totalLessons =
     course.categories?.reduce(
-      (sum: number, cat: any) => sum + cat.lessons.length,
+      (sum: number, cat: CourseCategory) => sum + cat.lessons.length,
       0
     ) || 0;
   const totalDurationSeconds =
     course.categories?.reduce(
-      (sum: number, cat: any) =>
+      (sum: number, cat: CourseCategory) =>
         sum +
         cat.lessons.reduce(
-          (lessonSum: number, lesson: any) =>
+          (lessonSum: number, lesson: Lesson) =>
             lessonSum + (lesson.durationSeconds || 0),
           0
         ),
@@ -194,10 +195,10 @@ export default function CourseDetailPage() {
                 </div>
               </div>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                {course.categories?.map((category: any) => {
+                {course.categories?.map((category: CourseCategory) => {
                   const isOpen = openCategories.has(category.id);
                   const categoryDuration = category.lessons.reduce(
-                    (sum: number, lesson: any) =>
+                    (sum: number, lesson: Lesson) =>
                       sum + (lesson.durationSeconds || 0),
                     0
                   );
@@ -231,7 +232,7 @@ export default function CourseDetailPage() {
                       >
                         <div className="overflow-hidden">
                           <div className="flex flex-col gap-1 p-5 pt-2 text-text-secondary">
-                            {category.lessons.map((lesson: any) => {
+                            {category.lessons.map((lesson: Lesson) => {
                               const canAccess =
                                 lesson.isFreePreview || course.hasAccess;
 
@@ -290,7 +291,7 @@ export default function CourseDetailPage() {
                                   </span>
                                   Quizzes
                                 </h4>
-                                {category.quizzes.map((quiz: any) => (
+                                {category.quizzes.map((quiz: Quiz & { maxScore?: number }) => (
                                   <div
                                     key={quiz.id}
                                     className="flex items-center justify-between rounded-lg bg-gray-50 p-3"

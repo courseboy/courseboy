@@ -53,7 +53,7 @@ router.patch(
   "/privileges/:id",
   authenticate,
   authorize("Admin"),
-  validateZod(updatePrivilegeSchema as any),
+  validateZod(updatePrivilegeSchema),
   userController.updatePrivilege
 );
 

@@ -15,6 +15,11 @@ interface Course {
   duration?: string;
   difficulty?: string;
   totalDurationSeconds?: number;
+  userProgress?: {
+    completedLessons: number;
+    totalLessons: number;
+    percentage: number;
+  };
 }
 
 /**
@@ -109,6 +114,24 @@ function CourseContent({ course, duration }: CourseContentProps) {
         {course.description}
       </p>
 
+      {/* Progress Bar (if user has started the course) */}
+      {course.userProgress && course.userProgress.percentage > 0 && (
+        <div className="mb-4">
+          <div className="mb-1 flex items-center justify-between text-sm">
+            <span className="font-medium text-gray-700">Your Progress</span>
+            <span className="font-bold text-blue-600">
+              {course.userProgress.percentage}%
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+            <div
+              className="h-full bg-blue-600 transition-all duration-300"
+              style={{ width: `${course.userProgress.percentage}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
         <span className="flex items-center gap-1 text-sm font-medium text-text-secondary">
@@ -119,7 +142,9 @@ function CourseContent({ course, duration }: CourseContentProps) {
           href={`/courses/${course.id}`}
           className="rounded-lg bg-primary px-6 py-2.5 font-bold text-white transition-colors hover:bg-blue-600"
         >
-          View Course
+          {course.userProgress && course.userProgress.percentage > 0
+            ? "Continue"
+            : "View Course"}
         </Link>
       </div>
     </div>

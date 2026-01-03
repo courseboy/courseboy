@@ -1,5 +1,5 @@
 import prisma from "../config/database.js";
-import { NotFoundError, ForbiddenError } from "../utils/errors.js";
+import { NotFoundError } from "../utils/errors.js";
 import { paginate, paginationMeta } from "../utils/response.js";
 
 interface CreateCourseInput {
@@ -323,6 +323,11 @@ export class CourseService {
 
     // Get user progress if logged in
     let userProgress = null;
+    let lessonProgressMap: Record<
+      number,
+      { watchedSeconds: number; isCompleted: boolean }
+    > = {};
+
     if (userId) {
       const accesses = await prisma.userAccess.findMany({
         where: {
@@ -330,6 +335,15 @@ export class CourseService {
           lesson: { courseId },
         },
       });
+
+      // Build a map of lesson progress for quick lookup
+      lessonProgressMap = accesses.reduce((acc, access) => {
+        acc[access.lessonId] = {
+          watchedSeconds: access.watchedSeconds,
+          isCompleted: access.isCompleted,
+        };
+        return acc;
+      }, {} as Record<number, { watchedSeconds: number; isCompleted: boolean }>);
 
       const totalLessons = course.courseCategories.reduce(
         (sum, cat) => sum + cat.lessons.length,
@@ -404,15 +418,26 @@ export class CourseService {
         id: cat.id,
         name: cat.name,
         orderIndex: cat.orderIndex,
-        lessons: cat.lessons.map((lesson) => ({
-          id: lesson.id,
-          title: lesson.title,
-          durationSeconds: lesson.durationSeconds,
-          isFreePreview: lesson.isFreePreview,
-          orderIndex: lesson.orderIndex,
-          // Only show video URL if user has access or it's a free preview
-          videoUrl: hasAccess || lesson.isFreePreview ? lesson.videoUrl : null,
-        })),
+        lessons: cat.lessons.map((lesson) => {
+          const progress = lessonProgressMap[lesson.id];
+          return {
+            id: lesson.id,
+            title: lesson.title,
+            durationSeconds: lesson.durationSeconds,
+            isFreePreview: lesson.isFreePreview,
+            orderIndex: lesson.orderIndex,
+            // Only show video URL if user has access or it's a free preview
+            videoUrl:
+              hasAccess || lesson.isFreePreview ? lesson.videoUrl : null,
+            // Include user progress if available
+            userProgress: progress
+              ? {
+                  watchedSeconds: progress.watchedSeconds,
+                  isCompleted: progress.isCompleted,
+                }
+              : null,
+          };
+        }),
         quizzes: cat.quizzes.map((quiz) => {
           const submission = quizSubmissions[quiz.id];
           return {

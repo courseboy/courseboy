@@ -8,6 +8,13 @@ import { userApi } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/spinner";
 import Link from "next/link";
 
+interface DashboardCourseProgress {
+  courseId: number;
+  courseName: string;
+  totalWatchedSeconds: number;
+  completedLessons: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
@@ -34,7 +41,7 @@ export default function DashboardPage() {
     return <LoadingScreen />;
   }
 
-  const progress = progressData || [];
+  const progress: DashboardCourseProgress[] = progressData || [];
 
   return (
     <div className="w-full bg-background-light py-12 lg:py-16">
@@ -66,7 +73,7 @@ export default function DashboardPage() {
             title="Total Watch Time"
             value={formatWatchTime(
               progress.reduce(
-                (sum: number, p: any) => sum + p.totalWatchedSeconds,
+                (sum: number, p: DashboardCourseProgress) => sum + p.totalWatchedSeconds,
                 0
               )
             )}
@@ -76,7 +83,7 @@ export default function DashboardPage() {
             icon="trending_up"
             title="Lessons Completed"
             value={progress
-              .reduce((sum: number, p: any) => sum + p.completedLessons, 0)
+              .reduce((sum: number, p: DashboardCourseProgress) => sum + p.completedLessons, 0)
               .toString()}
             color="green"
           />
@@ -122,7 +129,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {progress.map((course: any) => (
+              {progress.map((course: DashboardCourseProgress) => (
                 <article
                   key={course.courseId}
                   className="group overflow-hidden rounded-2xl bg-white p-6 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"

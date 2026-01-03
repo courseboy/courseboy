@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quizApi, courseApi } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
@@ -10,7 +10,6 @@ import Link from "next/link";
 
 export default function QuizPage() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const courseId = parseInt(params.id as string);
@@ -67,6 +66,7 @@ export default function QuizPage() {
 
       return () => clearInterval(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizData?.timeLimit, showResults]);
 
   // Submit mutation
@@ -113,7 +113,7 @@ export default function QuizPage() {
             Quiz Not Found
           </h2>
           <p className="text-gray-600 mb-4">
-            The quiz you're looking for doesn't exist.
+            The quiz you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link
             href={`/courses/${courseId}/learn`}
@@ -149,7 +149,7 @@ export default function QuizPage() {
               {quizData.hasPassed ? "Quiz Passed!" : "Quiz Not Passed"}
             </h2>
             <p className="text-gray-600 mb-6">
-              You've already completed this quiz.
+              You&apos;ve already completed this quiz.
             </p>
             {quizData.userSubmission && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
@@ -275,7 +275,7 @@ export default function QuizPage() {
           </span>
           <h2 className="text-xl font-bold text-gray-900 mb-2">No Questions</h2>
           <p className="text-gray-600 mb-4">
-            This quiz doesn't have any questions yet.
+            This quiz doesn&apos;t have any questions yet.
           </p>
           <Link
             href={`/courses/${courseId}/learn`}

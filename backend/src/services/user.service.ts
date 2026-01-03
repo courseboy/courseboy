@@ -330,6 +330,26 @@ export class UserService {
    * Update user privileges (replace all)
    */
   async updateUserPrivileges(userId: number, privilegeIds: number[]) {
+    // Check if user exists
+    const user = await prisma.appUser.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    // Verify all privilege IDs exist
+    if (privilegeIds.length > 0) {
+      const privileges = await prisma.privilege.findMany({
+        where: { id: { in: privilegeIds } },
+      });
+
+      if (privileges.length !== privilegeIds.length) {
+        throw new NotFoundError("One or more privileges not found");
+      }
+    }
+
     // First, remove all existing privileges
     await prisma.userPrivilege.deleteMany({
       where: { userId },
@@ -355,6 +375,26 @@ export class UserService {
     userId: number,
     input: { username?: string; email?: string; isActive?: boolean }
   ) {
+    // Check if user exists
+    const existingUser = await prisma.appUser.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    // Check if email is being updated and if it's already taken
+    if (input.email && input.email !== existingUser.email) {
+      const emailTaken = await prisma.appUser.findUnique({
+        where: { email: input.email },
+      });
+
+      if (emailTaken) {
+        throw new ConflictError("Email already registered");
+      }
+    }
+
     const user = await prisma.appUser.update({
       where: { id: userId },
       data: input,

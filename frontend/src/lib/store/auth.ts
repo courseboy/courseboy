@@ -24,7 +24,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -49,9 +49,12 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const apiError = error as { response?: { data?: { message?: string } } };
+          const errorMessage =
+            apiError.response?.data?.message || "Login failed";
           set({
-            error: error.response?.data?.message || "Login failed",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -61,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authApi.logout();
-        } catch (error) {
+        } catch {
           // Continue with logout even if API fails
         }
         Cookies.remove("accessToken");
@@ -88,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
             },
             isAuthenticated: true,
           });
-        } catch (error) {
+        } catch {
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           set({ user: null, isAuthenticated: false });

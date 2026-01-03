@@ -99,7 +99,7 @@ export class QuizService {
     if (!includeCorrectAnswers) {
       return {
         ...quiz,
-        questions: quiz.questions.map(({ correctAnswer, ...q }) => q),
+        questions: quiz.questions.map(({ correctAnswer: _correctAnswer, ...q }) => q),
       };
     }
 

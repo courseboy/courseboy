@@ -3,6 +3,7 @@ import { z } from "zod";
 import { lessonService } from "../services/lesson.service.js";
 import { sendSuccess, sendCreated } from "../utils/response.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { UnauthorizedError } from "../utils/errors.js";
 
 // Validation schemas
 export const createLessonSchema = z.object({
@@ -36,6 +37,9 @@ export const updateProgressSchema = z.object({
     watchedSeconds: z.number().int().min(0),
     isCompleted: z.boolean().optional(),
   }),
+  params: z.object({
+    id: z.string().transform(Number),
+  }),
 });
 
 export const lessonController = {
@@ -60,7 +64,14 @@ export const lessonController = {
    */
   updateProgress: asyncHandler(async (req: Request, res: Response) => {
     const lessonId = parseInt(req.params.id);
-    const userId = req.user!.userId;
+
+    if (!req.user) {
+      throw new UnauthorizedError(
+        "User must be authenticated to track progress"
+      );
+    }
+
+    const userId = req.user.userId;
 
     const progress = await lessonService.updateProgress(
       lessonId,

@@ -202,7 +202,6 @@ export function DeletePrivilegeModal({ privilege, onClose }: DeleteModalProps) {
 // Shared modal wrapper component
 function ModalWrapper({
   children,
-  onClose,
 }: {
   children: React.ReactNode;
   onClose: () => void;

@@ -60,8 +60,9 @@ export function EditUserModal({
       await adminUserApi.updatePrivileges(user.id, selectedPrivileges);
 
       onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update user");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Failed to update user");
     } finally {
       setLoading(false);
     }

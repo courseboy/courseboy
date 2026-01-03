@@ -14,8 +14,8 @@ export const createLessonSchema = z.object({
     isFreePreview: z.boolean().optional(),
   }),
   params: z.object({
-    courseId: z.string().transform(Number),
-    categoryId: z.string().transform(Number),
+    courseId: z.coerce.number(),
+    categoryId: z.coerce.number(),
   }),
 });
 
@@ -28,7 +28,7 @@ export const updateLessonSchema = z.object({
     orderIndex: z.number().int().positive().optional(),
   }),
   params: z.object({
-    id: z.string().transform(Number),
+    id: z.coerce.number(),
   }),
 });
 
@@ -38,7 +38,7 @@ export const updateProgressSchema = z.object({
     isCompleted: z.boolean().optional(),
   }),
   params: z.object({
-    id: z.string().transform(Number),
+    id: z.coerce.number(),
   }),
 });
 

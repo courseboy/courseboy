@@ -72,7 +72,6 @@ export function CourseCard({
               <CategorySection
                 key={category.id}
                 category={category}
-                courseId={course.id}
                 isExpanded={expandedCategories.has(category.id)}
                 onToggle={() => onToggleCategory(category.id)}
                 onEdit={() => onEditCategory(category)}

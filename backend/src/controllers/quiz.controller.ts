@@ -13,7 +13,7 @@ export const createQuizSchema = z.object({
     timeLimit: z.number().int().positive().nullable().optional(),
   }),
   params: z.object({
-    categoryId: z.string().regex(/^\d+$/, "Category ID must be a number"),
+    categoryId: z.coerce.number(),
   }),
 });
 
@@ -25,7 +25,7 @@ export const updateQuizSchema = z.object({
     timeLimit: z.number().int().positive().nullable().optional(),
   }),
   params: z.object({
-    id: z.string().regex(/^\d+$/, "Quiz ID must be a number"),
+    id: z.coerce.number(),
   }),
 });
 
@@ -39,7 +39,7 @@ export const createQuestionSchema = z.object({
     orderIndex: z.number().int().min(0).optional(),
   }),
   params: z.object({
-    quizId: z.string().regex(/^\d+$/, "Quiz ID must be a number"),
+    quizId: z.coerce.number(),
   }),
 });
 
@@ -53,7 +53,7 @@ export const updateQuestionSchema = z.object({
     orderIndex: z.number().int().min(0).optional(),
   }),
   params: z.object({
-    questionId: z.string().regex(/^\d+$/, "Question ID must be a number"),
+    questionId: z.coerce.number(),
   }),
 });
 
@@ -63,7 +63,7 @@ export const submitQuizSchema = z.object({
     timeTaken: z.number().int().min(0).optional(),
   }),
   params: z.object({
-    id: z.string().regex(/^\d+$/, "Quiz ID must be a number"),
+    id: z.coerce.number(),
   }),
 });
 
@@ -72,7 +72,7 @@ export const reorderQuestionsSchema = z.object({
     questionIds: z.array(z.number().int().positive()),
   }),
   params: z.object({
-    quizId: z.string().regex(/^\d+$/, "Quiz ID must be a number"),
+    quizId: z.coerce.number(),
   }),
 });
 

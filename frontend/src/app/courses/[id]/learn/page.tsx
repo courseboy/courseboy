@@ -49,6 +49,9 @@ export default function LearnCoursePage() {
   const [expandedQuizSections, setExpandedQuizSections] = useState<Set<number>>(
     new Set()
   );
+  // Collapsible sections state
+  const [isSyllabusExpanded, setIsSyllabusExpanded] = useState(true);
+  const [isAboutExpanded, setIsAboutExpanded] = useState(true);
 
   // Fetch course data
   const {
@@ -426,13 +429,26 @@ export default function LearnCoursePage() {
         <aside className="w-full flex-shrink-0 border-t border-gray-200 bg-background-section lg:w-[380px] lg:border-l lg:border-t-0">
           <div className="flex flex-col p-4 sm:p-6 lg:p-8">
             {/* Syllabus */}
-            <h3 className="mb-4 text-lg font-bold text-text-main">
-              Course Syllabus
-            </h3>
-            <div
-              className="flex flex-col gap-3 overflow-y-auto pr-2"
-              style={{ maxHeight: "calc(100vh - 70px)" }}
+            <button
+              onClick={() => setIsSyllabusExpanded((prev) => !prev)}
+              className="mb-4 flex w-full items-center justify-between text-left"
             >
+              <h3 className="text-lg font-bold text-text-main">
+                Course Syllabus
+              </h3>
+              <span
+                className={`material-symbols-outlined text-text-secondary transition-transform ${
+                  isSyllabusExpanded ? "rotate-180" : ""
+                }`}
+              >
+                expand_more
+              </span>
+            </button>
+            {isSyllabusExpanded && (
+              <div
+                className="flex flex-col gap-3 overflow-y-auto pr-2"
+                style={{ maxHeight: "calc(100vh - 70px)" }}
+              >
               {course.categories?.map((category) => (
                 <div
                   key={category.id}
@@ -696,6 +712,32 @@ export default function LearnCoursePage() {
                   )}
                 </div>
               ))}
+              </div>
+            )}
+
+            {/* Course Detail */}
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <button
+                onClick={() => setIsAboutExpanded((prev) => !prev)}
+                className="mb-3 flex w-full items-center justify-between text-left"
+              >
+                <h3 className="text-lg font-bold text-text-main">
+                  About this Course
+                </h3>
+                <span
+                  className={`material-symbols-outlined text-text-secondary transition-transform ${
+                    isAboutExpanded ? "rotate-180" : ""
+                  }`}
+                >
+                  expand_more
+                </span>
+              </button>
+              {isAboutExpanded && (
+                <p className="text-sm leading-relaxed text-text-secondary animate-in slide-in-from-top-2 duration-200">
+                  {course.description ||
+                    "No description available for this course."}
+                </p>
+              )}
             </div>
           </div>
         </aside>

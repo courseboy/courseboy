@@ -16,8 +16,6 @@ function formatDurationLocal(seconds: number | null): string {
   return formatDuration(seconds);
 }
 
-
-
 // Quiz type already has isCompleted, hasPassed, and userSubmission
 type QuizWithStatus = Quiz;
 
@@ -64,10 +62,7 @@ export default function LearnCoursePage() {
   });
 
   // Fetch current lesson details
-  const {
-    data: lessonDetail,
-    isLoading: lessonLoading,
-  } = useQuery({
+  const { data: lessonDetail, isLoading: lessonLoading } = useQuery({
     queryKey: ["lesson", selectedLessonId],
     queryFn: async () => {
       const response = await lessonApi.getById(selectedLessonId!);
@@ -414,35 +409,14 @@ export default function LearnCoursePage() {
 
         {/* Sidebar (Right) */}
         <aside className="w-full flex-shrink-0 border-t border-gray-200 bg-background-section lg:w-[380px] lg:border-l lg:border-t-0">
-          <div className="flex flex-col p-4 lg:p-6">
-            {/* Progress Card */}
-            <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-text-main">
-                Course Progress
-              </h3>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm text-text-secondary">
-                  {progressPercentage}% Complete
-                </span>
-                <span className="text-sm font-bold text-primary">
-                  {completedLessons}/{totalLessons} Lessons
-                </span>
-              </div>
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-200">
-                <div
-                  className="h-full bg-secondary transition-all"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
-
+          <div className="flex flex-col p-4 sm:p-6 lg:p-8">
             {/* Syllabus */}
             <h3 className="mb-4 text-lg font-bold text-text-main">
               Course Syllabus
             </h3>
             <div
               className="flex flex-col gap-3 overflow-y-auto pr-2"
-              style={{ maxHeight: "calc(100vh - 320px)" }}
+              style={{ maxHeight: "calc(100vh - 70px)" }}
             >
               {course.categories?.map((category) => (
                 <div

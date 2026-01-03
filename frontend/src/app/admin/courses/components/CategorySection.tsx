@@ -7,7 +7,6 @@ import { QuizSection } from "./QuizSection";
 
 interface CategorySectionProps {
   category: AdminCategory;
-  courseId: number;
   isExpanded: boolean;
   onToggle: () => void;
   onEdit: () => void;
@@ -24,7 +23,6 @@ interface CategorySectionProps {
 
 export function CategorySection({
   category,
-  courseId,
   isExpanded,
   onToggle,
   onEdit,

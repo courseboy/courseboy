@@ -36,7 +36,7 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
       router.refresh(); // Force refresh to update server components
-    } catch (error) {
+    } catch {
       // Error is handled by store
     }
   };

@@ -2,7 +2,7 @@
  * Hook for tracking and managing lesson progress
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { lessonApi } from "@/lib/api";
 

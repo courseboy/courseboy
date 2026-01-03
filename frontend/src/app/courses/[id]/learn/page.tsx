@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { courseApi, lessonApi } from "@/lib/api";
-import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
+import { useAuthHydration } from "@/lib/store/auth";
 import { LoadingScreen, Spinner } from "@/components/ui/spinner";
-import { Course, CourseCategory, Lesson, LessonProgress, Quiz } from "@/types";
+import { Course, Lesson, LessonProgress, Quiz } from "@/types";
 import VideoPlayer from "@/components/VideoPlayer";
 import { formatDuration } from "@/lib/progressUtils";
 
@@ -16,13 +16,7 @@ function formatDurationLocal(seconds: number | null): string {
   return formatDuration(seconds);
 }
 
-interface LessonWithProgress extends Lesson {
-  isCompleted?: boolean;
-}
 
-interface CategoryWithProgress extends CourseCategory {
-  lessons: LessonWithProgress[];
-}
 
 // Quiz type already has isCompleted, hasPassed, and userSubmission
 type QuizWithStatus = Quiz;
@@ -42,12 +36,10 @@ interface LessonDetail {
 export default function LearnCoursePage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const courseId = parseInt(params.id as string);
   const lessonIdParam = searchParams.get("lesson");
 
-  const { isAuthenticated } = useAuthStore();
   const hydrated = useAuthHydration();
 
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(
@@ -75,7 +67,6 @@ export default function LearnCoursePage() {
   const {
     data: lessonDetail,
     isLoading: lessonLoading,
-    error: lessonError,
   } = useQuery({
     queryKey: ["lesson", selectedLessonId],
     queryFn: async () => {

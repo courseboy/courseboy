@@ -62,6 +62,7 @@ export function getGoogleDriveEmbedUrl(url: string): string {
 /**
  * Throttle function - limits how often a function can be called
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function throttle<T extends (...args: any[]) => void>(
   func: T,
   delay: number
@@ -89,6 +90,7 @@ export function throttle<T extends (...args: any[]) => void>(
 /**
  * Debounce function - delays execution until after delay has passed since last call
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debounce<T extends (...args: any[]) => void>(
   func: T,
   delay: number

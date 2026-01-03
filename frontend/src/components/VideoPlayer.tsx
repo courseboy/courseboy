@@ -81,12 +81,16 @@ export default function VideoPlayer({
         lastSavedTime.current = watchedSeconds;
         onProgressUpdate?.(watchedSeconds, completed);
         console.log("Progress saved successfully");
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as {
+          response?: { data?: unknown; status?: number };
+          message?: string;
+        };
         console.error("Failed to save progress:", err);
-        console.error("Error details:", err.response?.data || err.message);
+        console.error("Error details:", error.response?.data || error.message);
 
         // If it's a 401 error, the user needs to log in again
-        if (err.response?.status === 401) {
+        if (error.response?.status === 401) {
           setError(
             "Session expired. Please refresh the page and log in again."
           );
@@ -235,21 +239,8 @@ export default function VideoPlayer({
       }
       saveProgress(video.currentTime);
     };
-  }, [saveProgress, initialProgress]);
+  }, [saveProgress, initialProgress, isGoogleDrive]);
 
-  // Format time display
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
 
   // Calculate progress percentage
   const progressPercentage =

@@ -1,5 +1,5 @@
 import prisma from "../config/database.js";
-import { NotFoundError, ForbiddenError } from "../utils/errors.js";
+import { NotFoundError } from "../utils/errors.js";
 import { paginate, paginationMeta } from "../utils/response.js";
 
 interface CreateCourseInput {

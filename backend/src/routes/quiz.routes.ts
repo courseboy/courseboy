@@ -22,7 +22,7 @@ router.get("/:id", optionalAuth, quizController.getById);
 router.post(
   "/:id/submit",
   authenticate,
-  validateZod(submitQuizSchema as any),
+  validateZod(submitQuizSchema),
   quizController.submit
 );
 
@@ -59,7 +59,7 @@ router.post(
   "/category/:categoryId",
   authenticate,
   authorize("Admin"),
-  validateZod(createQuizSchema as any),
+  validateZod(createQuizSchema),
   quizController.create
 );
 
@@ -84,7 +84,7 @@ router.patch(
   "/:id",
   authenticate,
   authorize("Admin"),
-  validateZod(updateQuizSchema as any),
+  validateZod(updateQuizSchema),
   quizController.update
 );
 
@@ -106,7 +106,7 @@ router.post(
   "/:quizId/questions",
   authenticate,
   authorize("Admin"),
-  validateZod(createQuestionSchema as any),
+  validateZod(createQuestionSchema),
   quizController.createQuestion
 );
 
@@ -115,7 +115,7 @@ router.patch(
   "/questions/:questionId",
   authenticate,
   authorize("Admin"),
-  validateZod(updateQuestionSchema as any),
+  validateZod(updateQuestionSchema),
   quizController.updateQuestion
 );
 
@@ -132,7 +132,7 @@ router.post(
   "/:quizId/questions/reorder",
   authenticate,
   authorize("Admin"),
-  validateZod(reorderQuestionsSchema as any),
+  validateZod(reorderQuestionsSchema),
   quizController.reorderQuestions
 );
 

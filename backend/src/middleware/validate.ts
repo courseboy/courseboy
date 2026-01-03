@@ -45,10 +45,11 @@ export const validateZod = <T>(schema: ZodSchema<T>) => {
       });
 
       // Replace request data with validated data
-      req.body = (validated as { body?: unknown }).body;
-      req.query = (validated as { query?: unknown }).query as Request["query"];
-      req.params = (validated as { params?: unknown })
-        .params as Request["params"];
+      req.body = (validated as { body?: unknown }).body ?? req.body;
+      req.query = ((validated as { query?: unknown }).query ??
+        req.query) as Request["query"];
+      req.params = ((validated as { params?: unknown }).params ??
+        req.params) as Request["params"];
 
       next();
     } catch (error) {

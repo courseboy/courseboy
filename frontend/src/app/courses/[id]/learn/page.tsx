@@ -8,12 +8,12 @@ import { courseApi, lessonApi } from "@/lib/api";
 import { useAuthStore, useAuthHydration } from "@/lib/store/auth";
 import { LoadingScreen, Spinner } from "@/components/ui/spinner";
 import { Course, CourseCategory, Lesson, LessonProgress, Quiz } from "@/types";
+import VideoPlayer from "@/components/VideoPlayer";
+import { formatDuration } from "@/lib/progressUtils";
 
-function formatDuration(seconds: number | null): string {
+function formatDurationLocal(seconds: number | null): string {
   if (!seconds) return "0:00";
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return formatDuration(seconds);
 }
 
 interface LessonWithProgress extends Lesson {
@@ -307,20 +307,33 @@ export default function LearnCoursePage() {
           </nav>
 
           {/* Video Player */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg">
+          <div className="relative w-full">
             {lessonLoading ? (
-              <div className="flex h-full items-center justify-center">
+              <div className="flex aspect-video h-full items-center justify-center rounded-2xl bg-black">
                 <Spinner size="lg" />
               </div>
             ) : lessonDetail?.videoUrl ? (
-              <iframe
-                src={lessonDetail.videoUrl}
-                className="h-full w-full"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
+              <VideoPlayer
+                lessonId={lessonDetail.id}
+                videoUrl={lessonDetail.videoUrl}
+                videoDuration={lessonDetail.durationSeconds || 0}
+                initialProgress={lessonDetail.userProgress?.watchedSeconds || 0}
+                initialCompleted={
+                  lessonDetail.userProgress?.isCompleted || false
+                }
+                onProgressUpdate={(watchedSeconds, isCompleted) => {
+                  if (isCompleted) {
+                    queryClient.invalidateQueries({
+                      queryKey: ["course", courseId],
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: ["lesson", selectedLessonId],
+                    });
+                  }
+                }}
               />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-4 text-white/70">
+              <div className="flex aspect-video h-full flex-col items-center justify-center gap-4 rounded-2xl bg-black text-white/70">
                 <span className="material-symbols-outlined text-6xl">
                   videocam_off
                 </span>
@@ -395,7 +408,7 @@ export default function LearnCoursePage() {
                     <span className="material-symbols-outlined text-lg">
                       schedule
                     </span>
-                    {formatDuration(lessonDetail.durationSeconds)}
+                    {formatDurationLocal(lessonDetail.durationSeconds)}
                   </span>
                 )}
                 {lessonDetail.isFreePreview && (
@@ -476,8 +489,8 @@ export default function LearnCoursePage() {
                         const isSelected = lesson.id === selectedLessonId;
                         const canAccess =
                           lesson.isFreePreview || course.hasAccess;
-                        // For now, we'll show completed based on whether progress exists
-                        // This would need to be enhanced to track actual completion
+                        const isCompleted =
+                          lesson.userProgress?.isCompleted || false;
 
                         return (
                           <button
@@ -494,7 +507,9 @@ export default function LearnCoursePage() {
                           >
                             <div
                               className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
-                                isSelected
+                                isCompleted
+                                  ? "bg-green-500 text-white"
+                                  : isSelected
                                   ? "bg-primary text-white"
                                   : canAccess
                                   ? "bg-gray-200 text-text-secondary"
@@ -502,7 +517,9 @@ export default function LearnCoursePage() {
                               }`}
                             >
                               <span className="material-symbols-outlined text-sm">
-                                {isSelected
+                                {isCompleted
+                                  ? "check"
+                                  : isSelected
                                   ? "play_arrow"
                                   : canAccess
                                   ? "play_circle"
@@ -510,20 +527,36 @@ export default function LearnCoursePage() {
                               </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p
-                                className={`truncate text-sm font-medium ${
-                                  isSelected ? "text-primary" : "text-text-main"
-                                }`}
-                              >
-                                {lesson.title}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p
+                                  className={`truncate text-sm font-medium ${
+                                    isSelected
+                                      ? "text-primary"
+                                      : "text-text-main"
+                                  }`}
+                                >
+                                  {lesson.title}
+                                </p>
+                                {isCompleted && (
+                                  <span className="flex-shrink-0 text-green-600">
+                                    <span className="material-symbols-outlined text-base">
+                                      check_circle
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
                               <div className="mt-1 flex items-center gap-2">
                                 <span className="text-xs text-text-secondary">
-                                  {formatDuration(lesson.durationSeconds)}
+                                  {formatDurationLocal(lesson.durationSeconds)}
                                 </span>
                                 {lesson.isFreePreview && (
                                   <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">
                                     FREE
+                                  </span>
+                                )}
+                                {isCompleted && (
+                                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                                    COMPLETED
                                   </span>
                                 )}
                               </div>

@@ -91,6 +91,20 @@ export class LessonService {
       throw new NotFoundError("Lesson not found");
     }
 
+    // Check if there's existing progress
+    const existingAccess = await prisma.userAccess.findUnique({
+      where: {
+        userId_lessonId: {
+          userId,
+          lessonId,
+        },
+      },
+    });
+
+    // Once completed, stay completed (don't reset to false)
+    const isCompleted =
+      input.isCompleted || existingAccess?.isCompleted || false;
+
     // Upsert user access
     const access = await prisma.userAccess.upsert({
       where: {
@@ -101,14 +115,14 @@ export class LessonService {
       },
       update: {
         watchedSeconds: input.watchedSeconds,
-        isCompleted: input.isCompleted ?? false,
+        isCompleted: isCompleted,
         lastAccessAt: new Date(),
       },
       create: {
         userId,
         lessonId,
         watchedSeconds: input.watchedSeconds,
-        isCompleted: input.isCompleted ?? false,
+        isCompleted: isCompleted,
       },
     });
 

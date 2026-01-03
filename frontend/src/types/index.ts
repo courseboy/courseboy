@@ -55,6 +55,10 @@ export interface Lesson {
   durationSeconds: number | null;
   isFreePreview: boolean;
   orderIndex: number;
+  userProgress?: {
+    watchedSeconds: number;
+    isCompleted: boolean;
+  } | null;
 }
 
 export interface LessonDetail extends Lesson {

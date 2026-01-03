@@ -50,7 +50,7 @@ export const updatePrivilegeSchema = z.object({
     price: z.number().int().min(0).optional().nullable(),
   }),
   params: z.object({
-    id: z.string().transform(Number),
+    id: z.coerce.number(),
   }),
 });
 

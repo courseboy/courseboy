@@ -17,7 +17,7 @@ export const createCourseSchema = z.object({
 
 export const updateCourseSchema = z.object({
   params: z.object({
-    id: z.string().regex(/^\d+$/, "Course ID must be a number"),
+    id: z.coerce.number(),
   }),
   body: z.object({
     name: z.string().min(1).optional(),
@@ -31,7 +31,7 @@ export const updateCourseSchema = z.object({
 
 export const createCategorySchema = z.object({
   params: z.object({
-    courseId: z.string().regex(/^\d+$/, "Course ID must be a number"),
+    courseId: z.coerce.number(),
   }),
   body: z.object({
     name: z.string().min(1, "Category name is required"),
@@ -41,7 +41,7 @@ export const createCategorySchema = z.object({
 
 export const updateCategorySchema = z.object({
   params: z.object({
-    categoryId: z.string().regex(/^\d+$/, "Category ID must be a number"),
+    categoryId: z.coerce.number(),
   }),
   body: z.object({
     name: z.string().min(1).optional(),
@@ -51,7 +51,7 @@ export const updateCategorySchema = z.object({
 
 export const reorderCategoriesSchema = z.object({
   params: z.object({
-    courseId: z.string().regex(/^\d+$/, "Course ID must be a number"),
+    courseId: z.coerce.number(),
   }),
   body: z.object({
     categoryIds: z.array(z.number().int().positive()),
@@ -60,7 +60,7 @@ export const reorderCategoriesSchema = z.object({
 
 export const reorderLessonsSchema = z.object({
   params: z.object({
-    categoryId: z.string().regex(/^\d+$/, "Category ID must be a number"),
+    categoryId: z.coerce.number(),
   }),
   body: z.object({
     lessonIds: z.array(z.number().int().positive()),

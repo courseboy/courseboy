@@ -33,8 +33,31 @@ export default function VideoPlayer({
   const hasAutoCompleted = useRef(initialCompleted);
   const { isAuthenticated } = useAuthStore();
 
+  // Check if it's a YouTube URL
+  const isYouTube =
+    videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
+
   // Check if it's a Google Drive URL
   const isGoogleDrive = videoUrl.includes("drive.google.com");
+
+  // Convert YouTube URL to embed format
+  const getYouTubeEmbedUrl = (url: string) => {
+    // Extract video ID from various YouTube URL formats
+    const patterns = [
+      /youtube\.com\/watch\?v=([^&]+)/,
+      /youtube\.com\/embed\/([^?]+)/,
+      /youtu\.be\/([^?]+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&origin=${window.location.origin}`;
+      }
+    }
+
+    return url;
+  };
 
   // Convert Google Drive URL to embeddable format
   const getEmbedUrl = (url: string) => {
@@ -152,8 +175,8 @@ export default function VideoPlayer({
 
   // HTML5 Video: Event-based progress tracking
   useEffect(() => {
-    // Only for HTML5 videos, not Google Drive iframes
-    if (isGoogleDrive) return;
+    // Only for HTML5 videos, not Google Drive or YouTube iframes
+    if (isGoogleDrive || isYouTube) return;
 
     const video = videoRef.current;
     if (!video) return;
@@ -239,8 +262,7 @@ export default function VideoPlayer({
       }
       saveProgress(video.currentTime);
     };
-  }, [saveProgress, initialProgress, isGoogleDrive]);
-
+  }, [saveProgress, initialProgress, isGoogleDrive, isYouTube]);
 
   // Calculate progress percentage
   const progressPercentage =
@@ -267,7 +289,72 @@ export default function VideoPlayer({
 
   return (
     <div className="w-full">
-      {isGoogleDrive ? (
+      {isYouTube ? (
+        // YouTube iframe embed
+        <div className="relative w-full">
+          <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="text-white">Loading video...</div>
+              </div>
+            )}
+            <iframe
+              src={getYouTubeEmbedUrl(videoUrl)}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              onLoad={() => setIsLoading(false)}
+            />
+          </div>
+
+          {/* Progress tracking for YouTube */}
+          <div className="mt-3 space-y-3">
+            {/* Progress bar */}
+            {duration > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    isCompleted ? "bg-green-500" : "bg-blue-600"
+                  }`}
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            )}
+
+            {/* Status and action */}
+            <div className="flex items-center justify-between">
+              {isCompleted ? (
+                <span className="flex items-center gap-2 text-green-600 font-medium">
+                  <span className="material-symbols-outlined text-lg">
+                    check_circle
+                  </span>
+                  Lesson Completed
+                </span>
+              ) : (
+                <span className="text-sm text-gray-500">
+                  {duration > 0
+                    ? `Watch to auto-complete (${Math.round(
+                        progressPercentage
+                      )}% watched)`
+                    : "Tracking watch time..."}
+                </span>
+              )}
+
+              {!isCompleted && isAuthenticated && (
+                <button
+                  onClick={handleMarkComplete}
+                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    task_alt
+                  </span>
+                  Mark as Complete
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : isGoogleDrive ? (
         // Google Drive iframe embed with timer-based tracking
         <div className="relative w-full">
           <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">

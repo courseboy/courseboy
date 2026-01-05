@@ -12,39 +12,49 @@ interface CreateLessonModalProps {
   categoryId: number;
 }
 
-// Extract Google Drive file ID from various URL formats
-function extractGoogleDriveFileId(url: string): string | null {
+// Process video URL - supports YouTube and Google Drive
+function processVideoUrl(url: string): string | null {
   if (!url) return null;
 
-  // Patterns:
-  // https://drive.google.com/file/d/FILE_ID/view
-  // https://drive.google.com/open?id=FILE_ID
-  // https://drive.google.com/uc?id=FILE_ID
-  // https://docs.google.com/file/d/FILE_ID/edit
-  const patterns = [
-    /\/file\/d\/([a-zA-Z0-9_-]+)/,
-    /[?&]id=([a-zA-Z0-9_-]+)/,
-    /\/d\/([a-zA-Z0-9_-]+)/,
-  ];
+  const trimmedUrl = url.trim();
 
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) {
-      return match[1];
+  // Check if it's a YouTube URL
+  if (trimmedUrl.includes("youtube.com") || trimmedUrl.includes("youtu.be")) {
+    // YouTube URLs are stored as-is, will be processed by VideoPlayer
+    return trimmedUrl;
+  }
+
+  // Check if it's a Google Drive URL
+  if (trimmedUrl.includes("drive.google.com")) {
+    const patterns = [
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /[?&]id=([a-zA-Z0-9_-]+)/,
+      /\/d\/([a-zA-Z0-9_-]+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = trimmedUrl.match(pattern);
+      if (match) {
+        return `https://drive.google.com/file/d/${match[1]}/preview`;
+      }
+    }
+
+    // If no pattern matches but looks like a file ID
+    if (/^[a-zA-Z0-9_-]{20,}$/.test(trimmedUrl)) {
+      return `https://drive.google.com/file/d/${trimmedUrl}/preview`;
     }
   }
 
-  // If no pattern matches, check if it's already just an ID
-  if (/^[a-zA-Z0-9_-]{20,}$/.test(url.trim())) {
-    return url.trim();
-  }
-
-  return null;
+  // Return as-is for direct video URLs
+  return trimmedUrl;
 }
 
-// Convert to embeddable URL
-function getGoogleDriveEmbedUrl(fileId: string): string {
-  return `https://drive.google.com/file/d/${fileId}/preview`;
+// Detect video type for validation feedback
+function detectVideoType(url: string): "youtube" | "drive" | "other" | null {
+  if (!url) return null;
+  if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
+  if (url.includes("drive.google.com")) return "drive";
+  return "other";
 }
 
 export function CreateLessonModal({
@@ -73,14 +83,13 @@ export function CreateLessonModal({
     // Process video URL
     let processedVideoUrl: string | undefined;
     if (videoUrl.trim()) {
-      const fileId = extractGoogleDriveFileId(videoUrl.trim());
-      if (!fileId) {
+      processedVideoUrl = processVideoUrl(videoUrl.trim()) || undefined;
+      if (!processedVideoUrl) {
         setError(
-          "Invalid Google Drive URL. Please use a valid Google Drive sharing link."
+          "Invalid video URL. Please use a valid YouTube or Google Drive link."
         );
         return;
       }
-      processedVideoUrl = getGoogleDriveEmbedUrl(fileId);
     }
 
     // Calculate duration in seconds
@@ -112,8 +121,8 @@ export function CreateLessonModal({
     }
   };
 
-  // Preview the extracted file ID
-  const fileId = extractGoogleDriveFileId(videoUrl);
+  // Detect video type for UI feedback
+  const videoType = detectVideoType(videoUrl);
 
   if (!isOpen) return null;
 
@@ -157,34 +166,40 @@ export function CreateLessonModal({
           {/* Video URL */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[#1F2933]">
-              Google Drive Video URL
+              Video URL
             </label>
             <input
               type="text"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://drive.google.com/file/d/..."
+              placeholder="YouTube or Google Drive URL"
               className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]/20 focus:border-[#3A7BD5] transition-colors"
             />
             <p className="text-xs text-[#6B7280]">
-              Paste the Google Drive sharing link. Make sure the video is set to
-              &quot;Anyone with the link can view&quot;.
+              Supports YouTube (recommended) or Google Drive links
             </p>
-            {videoUrl && (
+            {videoUrl && videoType && (
               <div className="mt-2 p-2 bg-slate-50 rounded-lg text-xs">
-                {fileId ? (
+                {videoType === "youtube" ? (
                   <div className="flex items-center gap-2 text-green-600">
                     <span className="material-symbols-outlined text-[16px]">
                       check_circle
                     </span>
-                    <span>File ID detected: {fileId.substring(0, 20)}...</span>
+                    <span>YouTube video detected ✓</span>
+                  </div>
+                ) : videoType === "drive" ? (
+                  <div className="flex items-center gap-2 text-blue-600">
+                    <span className="material-symbols-outlined text-[16px]">
+                      check_circle
+                    </span>
+                    <span>Google Drive video detected</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-amber-600">
                     <span className="material-symbols-outlined text-[16px]">
-                      warning
+                      info
                     </span>
-                    <span>Could not extract file ID from URL</span>
+                    <span>Direct video URL</span>
                   </div>
                 )}
               </div>

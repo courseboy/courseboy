@@ -113,7 +113,7 @@ async function main() {
     },
   });
 
-  // Create lessons
+  // Create lessons with YouTube videos
   await prisma.lesson.createMany({
     skipDuplicates: true,
     data: [
@@ -121,8 +121,8 @@ async function main() {
         courseId: course.id,
         courseCategoryId: category.id,
         title: "What is TypeScript?",
-        videoUrl: "https://example.com/video1",
-        durationSeconds: 600,
+        videoUrl: "https://www.youtube.com/watch?v=zQnBQ4tB3ZA", // TypeScript in 100 Seconds
+        durationSeconds: 143,
         orderIndex: 1,
         isFreePreview: true,
       },
@@ -130,7 +130,7 @@ async function main() {
         courseId: course.id,
         courseCategoryId: category.id,
         title: "Setting up your environment",
-        videoUrl: "https://example.com/video2",
+        videoUrl: "https://www.youtube.com/watch?v=ahCwqrYpIuM", // TypeScript Tutorial
         durationSeconds: 900,
         orderIndex: 2,
         isFreePreview: false,

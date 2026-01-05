@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { lessonApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/auth";
+import type { YTPlayer, YTEvent } from "@/types/youtube";
 
 interface VideoPlayerProps {
   lessonId: number;
@@ -13,21 +14,12 @@ interface VideoPlayerProps {
   onProgressUpdate?: (progress: number, isCompleted: boolean) => void;
 }
 
-// Declare YouTube IFrame API types
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
-
 // Separate YouTube Player Component to isolate DOM manipulation
 function YouTubePlayer({
   videoId,
   lessonId,
   initialProgress,
   initialCompleted,
-  videoDuration: initialVideoDuration,
   onTimeUpdate,
   onDurationChange,
   onComplete,
@@ -37,14 +29,13 @@ function YouTubePlayer({
   lessonId: number;
   initialProgress: number;
   initialCompleted: boolean;
-  videoDuration: number;
   onTimeUpdate: (time: number) => void;
   onDurationChange: (duration: number) => void;
   onComplete: () => void;
   onLoaded: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout>();
   const hasAutoCompleted = useRef(initialCompleted);
 
@@ -53,15 +44,16 @@ function YouTubePlayer({
 
     let isMounted = true;
     let checkYTInterval: NodeJS.Timeout | null = null;
+    const containerElement = containerRef.current;
 
     const initPlayer = () => {
-      if (!isMounted || !containerRef.current) return;
+      if (!isMounted || !containerElement) return;
 
       // Create a new div for the player
       const playerDiv = document.createElement("div");
       playerDiv.id = `yt-player-${lessonId}-${Date.now()}`;
-      containerRef.current.innerHTML = "";
-      containerRef.current.appendChild(playerDiv);
+      containerElement.innerHTML = "";
+      containerElement.appendChild(playerDiv);
 
       const startTime = initialProgress > 0 ? Math.floor(initialProgress) : 0;
 
@@ -77,7 +69,7 @@ function YouTubePlayer({
           start: startTime,
         },
         events: {
-          onReady: (event: any) => {
+          onReady: (event: YTEvent) => {
             if (!isMounted) return;
             onLoaded();
             const player = event.target;
@@ -95,7 +87,7 @@ function YouTubePlayer({
               hasAutoCompleted.current = true;
             }
           },
-          onStateChange: (event: any) => {
+          onStateChange: (event: YTEvent) => {
             if (!isMounted) return;
             const player = event.target;
 
@@ -189,16 +181,18 @@ function YouTubePlayer({
           if (typeof playerRef.current.destroy === "function") {
             playerRef.current.destroy();
           }
-        } catch (e) {
+        } catch {
           // Ignore errors during cleanup
         }
         playerRef.current = null;
       }
 
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+      // Clean up container if it still exists
+      if (containerElement) {
+        containerElement.innerHTML = "";
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, lessonId]);
 
   return (
@@ -413,7 +407,6 @@ export default function VideoPlayer({
               lessonId={lessonId}
               initialProgress={initialProgress}
               initialCompleted={initialCompleted}
-              videoDuration={videoDuration}
               onTimeUpdate={handleTimeUpdate}
               onDurationChange={handleDurationChange}
               onComplete={handleComplete}

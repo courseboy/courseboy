@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { adminCourseApi } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
+import type { YTEvent } from "@/types/youtube";
 
 interface CreateLessonModalProps {
   isOpen: boolean;
@@ -25,14 +26,6 @@ function getYouTubeVideoId(url: string): string | null {
     if (match) return match[1];
   }
   return null;
-}
-
-// Declare YouTube IFrame API types
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
 }
 
 // Fetch YouTube video duration using IFrame API
@@ -90,7 +83,7 @@ function fetchYouTubeDuration(videoId: string): Promise<number | null> {
             controls: 0,
           },
           events: {
-            onReady: (event: any) => {
+            onReady: (event: YTEvent) => {
               const duration = event.target.getDuration();
               event.target.destroy();
               document.body.removeChild(container);
@@ -99,7 +92,9 @@ function fetchYouTubeDuration(videoId: string): Promise<number | null> {
             onError: () => {
               try {
                 document.body.removeChild(container);
-              } catch (e) {}
+              } catch {
+                // Ignore errors
+              }
               resolve(null);
             },
           },
@@ -109,13 +104,17 @@ function fetchYouTubeDuration(videoId: string): Promise<number | null> {
           try {
             player.destroy();
             document.body.removeChild(container);
-          } catch (e) {}
+          } catch {
+            // Ignore errors
+          }
           resolve(null);
         }, 5000);
-      } catch (err) {
+      } catch {
         try {
           document.body.removeChild(container);
-        } catch (e) {}
+        } catch {
+          // Ignore errors
+        }
         resolve(null);
       }
     };

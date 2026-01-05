@@ -229,6 +229,17 @@ export default function VideoPlayer({
   const hasAutoCompleted = useRef(initialCompleted);
   const { isAuthenticated } = useAuthStore();
 
+  // Reset state when lessonId changes
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    setCurrentTime(initialProgress);
+    setDuration(videoDuration);
+    setIsCompleted(initialCompleted);
+    lastSavedTime.current = initialProgress;
+    hasAutoCompleted.current = initialCompleted;
+  }, [lessonId, initialProgress, initialCompleted, videoDuration]);
+
   // Check URL types
   const isYouTube =
     videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");

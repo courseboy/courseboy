@@ -1,30 +1,15 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
 export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+  withCredentials: true, // This automatically sends httpOnly cookies
   headers: {
     "Content-Type": "application/json",
   },
 });
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = Cookies.get("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // Response interceptor to handle token refresh
 api.interceptors.response.use(
@@ -37,25 +22,17 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = Cookies.get("refreshToken");
-        if (refreshToken) {
-          const response = await axios.post(
-            `${API_URL}/auth/refresh`,
-            { refreshToken },
-            { withCredentials: true }
-          );
+        // Call refresh endpoint (cookies sent automatically)
+        await axios.post(
+          `${API_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-          const { accessToken } = response.data.data;
-          Cookies.set("accessToken", accessToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-          return api(originalRequest);
-        }
+        // Retry original request
+        return api(originalRequest);
       } catch {
-        // Refresh failed, clear tokens and redirect to login
-        Cookies.remove("accessToken");
-        Cookies.remove("refreshToken");
-
+        // Refresh failed, redirect to login
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }

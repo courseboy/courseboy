@@ -3,14 +3,205 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { lessonApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/auth";
+import type { YTPlayer, YTEvent } from "@/types/youtube";
 
 interface VideoPlayerProps {
   lessonId: number;
   videoUrl: string;
-  videoDuration?: number; // Duration in seconds (from database)
+  videoDuration?: number;
   initialProgress?: number;
   initialCompleted?: boolean;
   onProgressUpdate?: (progress: number, isCompleted: boolean) => void;
+}
+
+// Separate YouTube Player Component to isolate DOM manipulation
+function YouTubePlayer({
+  videoId,
+  lessonId,
+  initialProgress,
+  initialCompleted,
+  onTimeUpdate,
+  onDurationChange,
+  onComplete,
+  onLoaded,
+}: {
+  videoId: string;
+  lessonId: number;
+  initialProgress: number;
+  initialCompleted: boolean;
+  onTimeUpdate: (time: number) => void;
+  onDurationChange: (duration: number) => void;
+  onComplete: () => void;
+  onLoaded: () => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout>();
+  const hasAutoCompleted = useRef(initialCompleted);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let isMounted = true;
+    let checkYTInterval: NodeJS.Timeout | null = null;
+    const containerElement = containerRef.current;
+
+    const initPlayer = () => {
+      if (!isMounted || !containerElement) return;
+
+      // Create a new div for the player
+      const playerDiv = document.createElement("div");
+      playerDiv.id = `yt-player-${lessonId}-${Date.now()}`;
+      containerElement.innerHTML = "";
+      containerElement.appendChild(playerDiv);
+
+      const startTime = initialProgress > 0 ? Math.floor(initialProgress) : 0;
+
+      playerRef.current = new window.YT.Player(playerDiv.id, {
+        videoId: videoId,
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          start: startTime,
+        },
+        events: {
+          onReady: (event: YTEvent) => {
+            if (!isMounted) return;
+            onLoaded();
+            const player = event.target;
+            const duration = player.getDuration();
+            onDurationChange(duration);
+
+            if (initialProgress > 0) {
+              player.seekTo(initialProgress, true);
+            }
+
+            if (
+              initialCompleted ||
+              (duration > 0 && initialProgress / duration >= 0.9)
+            ) {
+              hasAutoCompleted.current = true;
+            }
+          },
+          onStateChange: (event: YTEvent) => {
+            if (!isMounted) return;
+            const player = event.target;
+
+            // PLAYING
+            if (event.data === 1) {
+              startTracking();
+            }
+            // PAUSED
+            else if (event.data === 2) {
+              stopTracking();
+              onTimeUpdate(player.getCurrentTime());
+            }
+            // ENDED
+            else if (event.data === 0) {
+              stopTracking();
+              if (!hasAutoCompleted.current) {
+                hasAutoCompleted.current = true;
+                onComplete();
+              }
+            }
+          },
+        },
+      });
+    };
+
+    const startTracking = () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+
+      progressIntervalRef.current = setInterval(() => {
+        const player = playerRef.current;
+        if (!player || !player.getCurrentTime) return;
+
+        const current = player.getCurrentTime();
+        const duration = player.getDuration();
+        onTimeUpdate(current);
+
+        if (
+          !hasAutoCompleted.current &&
+          duration > 0 &&
+          current / duration >= 0.9
+        ) {
+          hasAutoCompleted.current = true;
+          onComplete();
+        }
+      }, 2000);
+    };
+
+    const stopTracking = () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+
+    const loadYouTubeAPI = () => {
+      if (window.YT && window.YT.Player) {
+        initPlayer();
+        return;
+      }
+
+      if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        checkYTInterval = setInterval(() => {
+          if (window.YT && window.YT.Player) {
+            if (checkYTInterval) clearInterval(checkYTInterval);
+            initPlayer();
+          }
+        }, 100);
+        return;
+      }
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      document.head.appendChild(tag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        initPlayer();
+      };
+    };
+
+    loadYouTubeAPI();
+
+    return () => {
+      isMounted = false;
+      if (checkYTInterval) clearInterval(checkYTInterval);
+      stopTracking();
+
+      if (playerRef.current) {
+        try {
+          if (typeof playerRef.current.destroy === "function") {
+            playerRef.current.destroy();
+          }
+        } catch {
+          // Ignore errors during cleanup
+        }
+        playerRef.current = null;
+      }
+
+      // Clean up container if it still exists
+      if (containerElement) {
+        containerElement.innerHTML = "";
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId, lessonId]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+      style={{ minHeight: "100%" }}
+    />
+  );
 }
 
 export default function VideoPlayer({
@@ -29,172 +220,125 @@ export default function VideoPlayer({
   const [isCompleted, setIsCompleted] = useState(initialCompleted);
   const lastSavedTime = useRef(initialProgress);
   const saveTimeout = useRef<NodeJS.Timeout>();
-  const watchTimerRef = useRef<NodeJS.Timeout>();
   const hasAutoCompleted = useRef(initialCompleted);
   const { isAuthenticated } = useAuthStore();
 
-  // Check if it's a Google Drive URL
-  const isGoogleDrive = videoUrl.includes("drive.google.com");
+  // Reset state when lessonId changes
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    setCurrentTime(initialProgress);
+    setDuration(videoDuration);
+    setIsCompleted(initialCompleted);
+    lastSavedTime.current = initialProgress;
+    hasAutoCompleted.current = initialCompleted;
+  }, [lessonId, initialProgress, initialCompleted, videoDuration]);
 
-  // Convert Google Drive URL to embeddable format
-  const getEmbedUrl = (url: string) => {
-    // Handle various Google Drive URL formats
+  // Check URL types
+  const isYouTube =
+    videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
+
+  // Extract YouTube video ID
+  const getYouTubeVideoId = (url: string): string | null => {
     const patterns = [
-      /drive\.google\.com\/file\/d\/([^\/]+)/,
-      /drive\.google\.com\/open\?id=([^&]+)/,
+      /youtube\.com\/watch\?v=([^&]+)/,
+      /youtube\.com\/embed\/([^?]+)/,
+      /youtu\.be\/([^?]+)/,
     ];
-
     for (const pattern of patterns) {
       const match = url.match(pattern);
-      if (match) {
-        return `https://drive.google.com/file/d/${match[1]}/preview`;
-      }
+      if (match) return match[1];
     }
-
-    return url; // Return original if no pattern matches
+    return null;
   };
 
-  // Throttled save function - saves every 5 seconds of watch time
+  const youtubeVideoId = isYouTube ? getYouTubeVideoId(videoUrl) : null;
+
+  // Save progress function
   const saveProgress = useCallback(
     async (watchedSeconds: number, completed: boolean = false) => {
-      // Only save progress if user is authenticated
-      if (!isAuthenticated) {
-        console.log("User not authenticated, skipping progress save");
+      if (!isAuthenticated) return;
+      if (!completed && Math.abs(watchedSeconds - lastSavedTime.current) < 3)
         return;
-      }
-
-      // Only save if progress changed significantly (more than 3 seconds difference)
-      if (!completed && Math.abs(watchedSeconds - lastSavedTime.current) < 3) {
-        return;
-      }
 
       try {
-        console.log(
-          `Saving progress: ${Math.floor(
-            watchedSeconds
-          )}s, completed: ${completed}`
-        );
         await lessonApi.updateProgress(lessonId, {
           watchedSeconds: Math.floor(watchedSeconds),
           isCompleted: completed,
         });
         lastSavedTime.current = watchedSeconds;
         onProgressUpdate?.(watchedSeconds, completed);
-        console.log("Progress saved successfully");
       } catch (err: unknown) {
-        const error = err as {
-          response?: { data?: unknown; status?: number };
-          message?: string;
-        };
-        console.error("Failed to save progress:", err);
-        console.error("Error details:", error.response?.data || error.message);
-
-        // If it's a 401 error, the user needs to log in again
+        const error = err as { response?: { status?: number } };
         if (error.response?.status === 401) {
-          setError(
-            "Session expired. Please refresh the page and log in again."
-          );
+          setError("Session expired. Please refresh the page.");
         }
       }
     },
     [lessonId, isAuthenticated, onProgressUpdate]
   );
 
-  // Google Drive: Timer-based progress tracking
+  // Handle time update from YouTube player
+  const handleTimeUpdate = useCallback(
+    (time: number) => {
+      setCurrentTime(time);
+      saveProgress(time);
+    },
+    [saveProgress]
+  );
+
+  // Handle duration change
+  const handleDurationChange = useCallback((newDuration: number) => {
+    setDuration(newDuration);
+  }, []);
+
+  // Handle video complete
+  const handleComplete = useCallback(() => {
+    setIsCompleted(true);
+    saveProgress(duration, true);
+  }, [duration, saveProgress]);
+
+  // Handle loaded
+  const handleLoaded = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
+  // Manual mark complete
+  const handleMarkComplete = async () => {
+    if (!isAuthenticated) return;
+    hasAutoCompleted.current = true;
+    setIsCompleted(true);
+    await saveProgress(currentTime, true);
+  };
+
+  // HTML5 Video tracking
   useEffect(() => {
-    if (!isGoogleDrive || !isAuthenticated || isCompleted) return;
-
-    // Start a timer when iframe loads
-    const startTime = Date.now();
-    const savedProgress = initialProgress;
-
-    // Update progress every 10 seconds while watching
-    watchTimerRef.current = setInterval(() => {
-      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-      const totalWatched = savedProgress + elapsedSeconds;
-      setCurrentTime(totalWatched);
-
-      // Auto-complete if watched 90% of video duration
-      if (
-        !hasAutoCompleted.current &&
-        videoDuration > 0 &&
-        totalWatched / videoDuration >= 0.9
-      ) {
-        hasAutoCompleted.current = true;
-        setIsCompleted(true);
-        console.log("Auto-completing: User watched 90% of Google Drive video");
-        saveProgress(totalWatched, true);
-      } else {
-        // Save progress periodically
-        saveProgress(totalWatched);
-      }
-    }, 10000); // Update every 10 seconds
-
-    return () => {
-      if (watchTimerRef.current) {
-        clearInterval(watchTimerRef.current);
-      }
-      // Save final progress on unmount
-      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-      const totalWatched = savedProgress + elapsedSeconds;
-      if (totalWatched > lastSavedTime.current) {
-        saveProgress(totalWatched);
-      }
-    };
-  }, [
-    isGoogleDrive,
-    isAuthenticated,
-    isCompleted,
-    videoDuration,
-    initialProgress,
-    saveProgress,
-  ]);
-
-  // HTML5 Video: Event-based progress tracking
-  useEffect(() => {
-    // Only for HTML5 videos, not Google Drive iframes
-    if (isGoogleDrive) return;
+    if (isYouTube) return;
 
     const video = videoRef.current;
     if (!video) return;
 
-    const handleTimeUpdate = () => {
+    const handleVideoTimeUpdate = () => {
       const current = video.currentTime;
-      const videoDuration = video.duration;
+      const dur = video.duration;
       setCurrentTime(current);
 
-      // Check if user has watched 90% of the video - auto-complete
-      if (
-        !hasAutoCompleted.current &&
-        videoDuration > 0 &&
-        current / videoDuration >= 0.9
-      ) {
+      if (!hasAutoCompleted.current && dur > 0 && current / dur >= 0.9) {
         hasAutoCompleted.current = true;
-        console.log("Auto-completing: User watched 90% of video");
+        setIsCompleted(true);
         saveProgress(current, true);
-        return; // Don't save regular progress, we just saved with completion
+        return;
       }
 
-      // Clear existing timeout
-      if (saveTimeout.current) {
-        clearTimeout(saveTimeout.current);
-      }
-
-      // Debounce save - wait 2 seconds after last time update
-      saveTimeout.current = setTimeout(() => {
-        saveProgress(current);
-      }, 2000);
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => saveProgress(current), 2000);
     };
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
       setIsLoading(false);
-
-      // Resume from saved position
       if (initialProgress > 0) {
         video.currentTime = initialProgress;
-
-        // If already completed 90%+, mark as auto-completed to prevent re-triggering
         if (video.duration > 0 && initialProgress / video.duration >= 0.9) {
           hasAutoCompleted.current = true;
         }
@@ -202,57 +346,39 @@ export default function VideoPlayer({
     };
 
     const handleEnded = () => {
-      // Mark as completed when video ends
       if (!hasAutoCompleted.current) {
         hasAutoCompleted.current = true;
-        console.log("Auto-completing: Video ended");
+        setIsCompleted(true);
       }
       saveProgress(video.duration, true);
     };
 
     const handleError = () => {
-      setError("Failed to load video. Please try again later.");
+      setError("Failed to load video.");
       setIsLoading(false);
     };
 
-    const handlePause = () => {
-      // Save immediately on pause
-      saveProgress(video.currentTime);
-    };
+    const handlePause = () => saveProgress(video.currentTime);
 
-    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("timeupdate", handleVideoTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("ended", handleEnded);
     video.addEventListener("error", handleError);
     video.addEventListener("pause", handlePause);
 
     return () => {
-      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("timeupdate", handleVideoTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("ended", handleEnded);
       video.removeEventListener("error", handleError);
       video.removeEventListener("pause", handlePause);
-
-      // Save progress on unmount
-      if (saveTimeout.current) {
-        clearTimeout(saveTimeout.current);
-      }
-      saveProgress(video.currentTime);
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
     };
-  }, [saveProgress, initialProgress, isGoogleDrive]);
+  }, [saveProgress, initialProgress, isYouTube]);
 
-
-  // Calculate progress percentage
+  // Progress percentage
   const progressPercentage =
     duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
-
-  // Handle manual mark as complete for Google Drive videos
-  const handleMarkComplete = async () => {
-    if (!isAuthenticated) return;
-    hasAutoCompleted.current = true;
-    setIsCompleted(true);
-    await saveProgress(currentTime, true);
-  };
 
   if (error) {
     return (
@@ -267,27 +393,28 @@ export default function VideoPlayer({
 
   return (
     <div className="w-full">
-      {isGoogleDrive ? (
-        // Google Drive iframe embed with timer-based tracking
+      {isYouTube && youtubeVideoId ? (
         <div className="relative w-full">
           <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
-                <div className="text-white">Loading video...</div>
+                <div className="text-white">Loading YouTube video...</div>
               </div>
             )}
-            <iframe
-              src={getEmbedUrl(videoUrl)}
-              className="w-full h-full"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              onLoad={() => setIsLoading(false)}
+            <YouTubePlayer
+              key={`youtube-${lessonId}`}
+              videoId={youtubeVideoId}
+              lessonId={lessonId}
+              initialProgress={initialProgress}
+              initialCompleted={initialCompleted}
+              onTimeUpdate={handleTimeUpdate}
+              onDurationChange={handleDurationChange}
+              onComplete={handleComplete}
+              onLoaded={handleLoaded}
             />
           </div>
 
-          {/* Progress tracking for Google Drive */}
           <div className="mt-3 space-y-3">
-            {/* Progress bar */}
             {duration > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div
@@ -299,24 +426,29 @@ export default function VideoPlayer({
               </div>
             )}
 
-            {/* Status and action */}
             <div className="flex items-center justify-between">
-              {isCompleted ? (
-                <span className="flex items-center gap-2 text-green-600 font-medium">
-                  <span className="material-symbols-outlined text-lg">
-                    check_circle
+              <div className="flex flex-col gap-1">
+                {isCompleted ? (
+                  <span className="flex items-center gap-2 text-green-600 font-medium">
+                    <span className="material-symbols-outlined text-lg">
+                      check_circle
+                    </span>
+                    Lesson Completed
                   </span>
-                  Lesson Completed
-                </span>
-              ) : (
-                <span className="text-sm text-gray-500">
-                  {duration > 0
-                    ? `Watch to auto-complete (${Math.round(
-                        progressPercentage
-                      )}% watched)`
-                    : "Tracking watch time..."}
-                </span>
-              )}
+                ) : (
+                  <>
+                    <span className="text-sm text-gray-700">
+                      Progress: {Math.round(progressPercentage)}%
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {Math.floor(currentTime / 60)}:
+                      {String(Math.floor(currentTime % 60)).padStart(2, "0")} /{" "}
+                      {Math.floor(duration / 60)}:
+                      {String(Math.floor(duration % 60)).padStart(2, "0")}
+                    </span>
+                  </>
+                )}
+              </div>
 
               {!isCompleted && isAuthenticated && (
                 <button
@@ -333,7 +465,6 @@ export default function VideoPlayer({
           </div>
         </div>
       ) : (
-        // Standard HTML5 video for direct video URLs
         <div className="relative w-full">
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-lg">
@@ -350,7 +481,6 @@ export default function VideoPlayer({
             Your browser does not support the video tag.
           </video>
 
-          {/* Progress bar */}
           {duration > 0 && (
             <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div

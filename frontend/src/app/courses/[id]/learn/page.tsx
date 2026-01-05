@@ -163,6 +163,8 @@ export default function LearnCoursePage() {
   const handleLessonSelect = (lesson: Lesson) => {
     if (lesson.isFreePreview || course?.hasAccess) {
       setSelectedLessonId(lesson.id);
+      // Refresh course data to show updated progress in syllabus
+      queryClient.invalidateQueries({ queryKey: ["course", courseId] });
     }
   };
 
@@ -449,269 +451,311 @@ export default function LearnCoursePage() {
                 className="flex flex-col gap-3 overflow-y-auto pr-2"
                 style={{ maxHeight: "calc(100vh - 70px)" }}
               >
-              {course.categories?.map((category) => (
-                <div
-                  key={category.id}
-                  className="rounded-xl border border-gray-200 bg-white"
-                >
-                  {/* Category Header */}
-                  <button
-                    onClick={() => toggleCategory(category.id)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                {course.categories?.map((category) => (
+                  <div
+                    key={category.id}
+                    className="rounded-xl border border-gray-200 bg-white"
                   >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`material-symbols-outlined text-lg text-text-secondary transition-transform ${
-                          expandedCategories.has(category.id)
-                            ? "rotate-180"
-                            : ""
-                        }`}
-                      >
-                        expand_more
+                    {/* Category Header */}
+                    <button
+                      onClick={() => toggleCategory(category.id)}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`material-symbols-outlined text-lg text-text-secondary transition-transform ${
+                            expandedCategories.has(category.id)
+                              ? "rotate-180"
+                              : ""
+                          }`}
+                        >
+                          expand_more
+                        </span>
+                        <span className="font-bold text-text-main">
+                          {category.name}
+                        </span>
+                      </div>
+                      <span className="text-xs text-text-secondary">
+                        {category.lessons.length} lessons
                       </span>
-                      <span className="font-bold text-text-main">
-                        {category.name}
-                      </span>
-                    </div>
-                    <span className="text-xs text-text-secondary">
-                      {category.lessons.length} lessons
-                    </span>
-                  </button>
+                    </button>
 
-                  {/* Lessons */}
-                  {expandedCategories.has(category.id) && (
-                    <div className="border-t border-gray-100 bg-gray-50/50 p-2">
-                      {category.lessons.map((lesson) => {
-                        const isSelected = lesson.id === selectedLessonId;
-                        const canAccess =
-                          lesson.isFreePreview || course.hasAccess;
-                        const isCompleted =
-                          lesson.userProgress?.isCompleted || false;
+                    {/* Lessons */}
+                    {expandedCategories.has(category.id) && (
+                      <div className="border-t border-gray-100 bg-gray-50/50 p-2">
+                        {category.lessons.map((lesson) => {
+                          const isSelected = lesson.id === selectedLessonId;
+                          const canAccess =
+                            lesson.isFreePreview || course.hasAccess;
+                          const isCompleted =
+                            lesson.userProgress?.isCompleted || false;
 
-                        return (
-                          <button
-                            key={lesson.id}
-                            onClick={() => handleLessonSelect(lesson)}
-                            disabled={!canAccess}
-                            className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all ${
-                              isSelected
-                                ? "border-2 border-primary bg-white shadow-sm"
-                                : canAccess
-                                ? "hover:bg-white/80"
-                                : "cursor-not-allowed opacity-50"
-                            }`}
-                          >
-                            <div
-                              className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
-                                isCompleted
-                                  ? "bg-green-500 text-white"
-                                  : isSelected
-                                  ? "bg-primary text-white"
+                          // Calculate progress percentage
+                          const watchedSeconds =
+                            lesson.userProgress?.watchedSeconds || 0;
+                          const totalSeconds = lesson.durationSeconds || 0;
+                          const progressPercentage =
+                            totalSeconds > 0
+                              ? Math.min(
+                                  (watchedSeconds / totalSeconds) * 100,
+                                  100
+                                )
+                              : 0;
+
+                          return (
+                            <button
+                              key={lesson.id}
+                              onClick={() => handleLessonSelect(lesson)}
+                              disabled={!canAccess}
+                              className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all ${
+                                isSelected
+                                  ? "border-2 border-primary bg-white shadow-sm"
                                   : canAccess
-                                  ? "bg-gray-200 text-text-secondary"
-                                  : "bg-gray-200 text-gray-400"
+                                  ? "hover:bg-white/80"
+                                  : "cursor-not-allowed opacity-50"
                               }`}
                             >
-                              <span className="material-symbols-outlined text-sm">
-                                {isCompleted
-                                  ? "check"
-                                  : isSelected
-                                  ? "play_arrow"
-                                  : canAccess
-                                  ? "play_circle"
-                                  : "lock"}
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <p
-                                  className={`truncate text-sm font-medium ${
-                                    isSelected
-                                      ? "text-primary"
-                                      : "text-text-main"
-                                  }`}
-                                >
-                                  {lesson.title}
-                                </p>
-                                {isCompleted && (
-                                  <span className="flex-shrink-0 text-green-600">
-                                    <span className="material-symbols-outlined text-base">
-                                      check_circle
-                                    </span>
-                                  </span>
-                                )}
-                              </div>
-                              <div className="mt-1 flex items-center gap-2">
-                                <span className="text-xs text-text-secondary">
-                                  {formatDurationLocal(lesson.durationSeconds)}
+                              <div
+                                className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+                                  isCompleted
+                                    ? "bg-green-500 text-white"
+                                    : isSelected
+                                    ? "bg-primary text-white"
+                                    : canAccess
+                                    ? "bg-gray-200 text-text-secondary"
+                                    : "bg-gray-200 text-gray-400"
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-sm">
+                                  {isCompleted
+                                    ? "check"
+                                    : isSelected
+                                    ? "play_arrow"
+                                    : canAccess
+                                    ? "play_circle"
+                                    : "lock"}
                                 </span>
-                                {lesson.isFreePreview && (
-                                  <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">
-                                    FREE
-                                  </span>
-                                )}
-                                {isCompleted && (
-                                  <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
-                                    COMPLETED
-                                  </span>
-                                )}
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-
-                      {/* Quizzes Section */}
-                      {category.quizzes && category.quizzes.length > 0 && (
-                        <div className="mt-3 border-t border-gray-200 pt-3">
-                          <button
-                            onClick={() => toggleQuizSection(category.id)}
-                            className="mb-2 flex w-full items-center justify-between px-3 py-1 text-left transition-colors hover:bg-gray-100/50 rounded-lg"
-                          >
-                            <div className="flex items-center gap-1.5">
-                              <span className="material-symbols-outlined text-sm text-accent">
-                                quiz
-                              </span>
-                              <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                                Quizzes
-                              </span>
-                            </div>
-                            <span
-                              className={`material-symbols-outlined text-lg text-text-secondary transition-transform ${
-                                expandedQuizSections.has(category.id)
-                                  ? "rotate-180"
-                                  : ""
-                              }`}
-                            >
-                              expand_more
-                            </span>
-                          </button>
-                          {expandedQuizSections.has(category.id) && (
-                            <div className="animate-in slide-in-from-top-2 duration-200">
-                              {category.quizzes.map((quiz: QuizWithStatus) => {
-                                const canTakeQuiz = course.hasAccess;
-                                const isCompleted = quiz.isCompleted;
-                                const hasPassed = quiz.hasPassed;
-                                const submission = quiz.userSubmission;
-
-                                return (
-                                  <div
-                                    key={quiz.id}
-                                    className={`mb-2 flex items-start gap-3 rounded-lg border p-3 ${
-                                      isCompleted && hasPassed
-                                        ? "border-green-300 bg-green-50"
-                                        : isCompleted && !hasPassed
-                                        ? "border-orange-300 bg-orange-50"
-                                        : canTakeQuiz
-                                        ? "border-blue-300 bg-blue-50"
-                                        : "border-gray-200 bg-gray-100 opacity-50"
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p
+                                    className={`truncate text-sm font-medium ${
+                                      isSelected
+                                        ? "text-primary"
+                                        : "text-text-main"
                                     }`}
                                   >
-                                    <div
-                                      className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
-                                        isCompleted && hasPassed
-                                          ? "bg-green-500 text-white"
-                                          : isCompleted && !hasPassed
-                                          ? "bg-orange-500 text-white"
-                                          : canTakeQuiz
-                                          ? "bg-accent/20 text-accent"
-                                          : "bg-gray-200 text-gray-400"
-                                      }`}
-                                    >
-                                      <span className="material-symbols-outlined text-sm">
-                                        {isCompleted && hasPassed
-                                          ? "check"
-                                          : isCompleted && !hasPassed
-                                          ? "refresh"
-                                          : canTakeQuiz
-                                          ? "assignment"
-                                          : "lock"}
+                                    {lesson.title}
+                                  </p>
+                                  {isCompleted && (
+                                    <span className="flex-shrink-0 text-green-600">
+                                      <span className="material-symbols-outlined text-base">
+                                        check_circle
+                                      </span>
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <span className="text-xs text-text-secondary">
+                                    {formatDurationLocal(
+                                      lesson.durationSeconds
+                                    )}
+                                  </span>
+                                  {lesson.isFreePreview && (
+                                    <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">
+                                      FREE
+                                    </span>
+                                  )}
+                                  {isCompleted && (
+                                    <span className="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                                      COMPLETED
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Progress Bar */}
+                                {canAccess && watchedSeconds > 0 && (
+                                  <div className="mt-2 w-full">
+                                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                                      <div
+                                        className={`h-full transition-all duration-300 ${
+                                          isCompleted
+                                            ? "bg-green-500"
+                                            : "bg-primary"
+                                        }`}
+                                        style={{
+                                          width: `${progressPercentage}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="mt-0.5 flex items-center justify-between">
+                                      <span className="text-[10px] text-text-secondary">
+                                        {Math.round(progressPercentage)}%
+                                        watched
                                       </span>
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                      <p
-                                        className={`truncate text-sm font-medium ${
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        {/* Quizzes Section */}
+                        {category.quizzes && category.quizzes.length > 0 && (
+                          <div className="mt-3 border-t border-gray-200 pt-3">
+                            <button
+                              onClick={() => toggleQuizSection(category.id)}
+                              className="mb-2 flex w-full items-center justify-between px-3 py-1 text-left transition-colors hover:bg-gray-100/50 rounded-lg"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-sm text-accent">
+                                  quiz
+                                </span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                                  Quizzes
+                                </span>
+                              </div>
+                              <span
+                                className={`material-symbols-outlined text-lg text-text-secondary transition-transform ${
+                                  expandedQuizSections.has(category.id)
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
+                              >
+                                expand_more
+                              </span>
+                            </button>
+                            {expandedQuizSections.has(category.id) && (
+                              <div className="animate-in slide-in-from-top-2 duration-200">
+                                {category.quizzes.map(
+                                  (quiz: QuizWithStatus) => {
+                                    const canTakeQuiz = course.hasAccess;
+                                    const isCompleted = quiz.isCompleted;
+                                    const hasPassed = quiz.hasPassed;
+                                    const submission = quiz.userSubmission;
+
+                                    return (
+                                      <div
+                                        key={quiz.id}
+                                        className={`mb-2 flex items-start gap-3 rounded-lg border p-3 ${
                                           isCompleted && hasPassed
-                                            ? "text-green-700"
+                                            ? "border-green-300 bg-green-50"
                                             : isCompleted && !hasPassed
-                                            ? "text-orange-700"
-                                            : "text-text-main"
+                                            ? "border-orange-300 bg-orange-50"
+                                            : canTakeQuiz
+                                            ? "border-blue-300 bg-blue-50"
+                                            : "border-gray-200 bg-gray-100 opacity-50"
                                         }`}
                                       >
-                                        {quiz.name}
-                                      </p>
-                                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                                        {submission ? (
-                                          <>
-                                            <span
-                                              className={`rounded px-1.5 py-0.5 text-xs font-bold ${
-                                                hasPassed
-                                                  ? "bg-green-100 text-green-700"
-                                                  : "bg-orange-100 text-orange-700"
-                                              }`}
-                                            >
-                                              {submission.percentage}% (
-                                              {submission.score}/
-                                              {submission.maxScore})
-                                            </span>
-                                            {hasPassed && (
-                                              <span className="text-xs text-green-600">
-                                                ✓ Passed
-                                              </span>
-                                            )}
-                                            {!hasPassed && (
-                                              <span className="text-xs text-orange-600">
-                                                Need {quiz.passingScore}% to pass
-                                              </span>
-                                            )}
-                                          </>
-                                        ) : (
-                                          <span className="text-xs text-text-secondary">
-                                            Pass: {quiz.passingScore}% •{" "}
-                                            {quiz._count?.questions || 0} questions
+                                        <div
+                                          className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+                                            isCompleted && hasPassed
+                                              ? "bg-green-500 text-white"
+                                              : isCompleted && !hasPassed
+                                              ? "bg-orange-500 text-white"
+                                              : canTakeQuiz
+                                              ? "bg-accent/20 text-accent"
+                                              : "bg-gray-200 text-gray-400"
+                                          }`}
+                                        >
+                                          <span className="material-symbols-outlined text-sm">
+                                            {isCompleted && hasPassed
+                                              ? "check"
+                                              : isCompleted && !hasPassed
+                                              ? "refresh"
+                                              : canTakeQuiz
+                                              ? "assignment"
+                                              : "lock"}
                                           </span>
-                                        )}
-                                      </div>
-                                      {canTakeQuiz && (
-                                        <div className="mt-2 flex gap-2">
-                                          {!isCompleted || !hasPassed ? (
-                                            <Link
-                                              href={`/courses/${course.id}/quiz?quiz=${quiz.id}`}
-                                              className="flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-600"
-                                            >
-                                              <span className="material-symbols-outlined text-sm">
-                                                quiz
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <p
+                                            className={`truncate text-sm font-medium ${
+                                              isCompleted && hasPassed
+                                                ? "text-green-700"
+                                                : isCompleted && !hasPassed
+                                                ? "text-orange-700"
+                                                : "text-text-main"
+                                            }`}
+                                          >
+                                            {quiz.name}
+                                          </p>
+                                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                                            {submission ? (
+                                              <>
+                                                <span
+                                                  className={`rounded px-1.5 py-0.5 text-xs font-bold ${
+                                                    hasPassed
+                                                      ? "bg-green-100 text-green-700"
+                                                      : "bg-orange-100 text-orange-700"
+                                                  }`}
+                                                >
+                                                  {submission.percentage}% (
+                                                  {submission.score}/
+                                                  {submission.maxScore})
+                                                </span>
+                                                {hasPassed && (
+                                                  <span className="text-xs text-green-600">
+                                                    ✓ Passed
+                                                  </span>
+                                                )}
+                                                {!hasPassed && (
+                                                  <span className="text-xs text-orange-600">
+                                                    Need {quiz.passingScore}% to
+                                                    pass
+                                                  </span>
+                                                )}
+                                              </>
+                                            ) : (
+                                              <span className="text-xs text-text-secondary">
+                                                Pass: {quiz.passingScore}% •{" "}
+                                                {quiz._count?.questions || 0}{" "}
+                                                questions
                                               </span>
-                                              {isCompleted
-                                                ? "Retake Quiz"
-                                                : "Take Quiz"}
-                                            </Link>
-                                          ) : null}
-                                          {isCompleted && (
-                                            <Link
-                                              href={`/courses/${course.id}/quiz/results?quiz=${quiz.id}`}
-                                              className="flex items-center gap-1 rounded-md bg-gray-500 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-gray-600"
-                                            >
-                                              <span className="material-symbols-outlined text-sm">
-                                                visibility
-                                              </span>
-                                              View Results
-                                            </Link>
+                                            )}
+                                          </div>
+                                          {canTakeQuiz && (
+                                            <div className="mt-2 flex gap-2">
+                                              {!isCompleted || !hasPassed ? (
+                                                <Link
+                                                  href={`/courses/${course.id}/quiz?quiz=${quiz.id}`}
+                                                  className="flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-600"
+                                                >
+                                                  <span className="material-symbols-outlined text-sm">
+                                                    quiz
+                                                  </span>
+                                                  {isCompleted
+                                                    ? "Retake Quiz"
+                                                    : "Take Quiz"}
+                                                </Link>
+                                              ) : null}
+                                              {isCompleted && (
+                                                <Link
+                                                  href={`/courses/${course.id}/quiz/results?quiz=${quiz.id}`}
+                                                  className="flex items-center gap-1 rounded-md bg-gray-500 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-gray-600"
+                                                >
+                                                  <span className="material-symbols-outlined text-sm">
+                                                    visibility
+                                                  </span>
+                                                  View Results
+                                                </Link>
+                                              )}
+                                            </div>
                                           )}
                                         </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 

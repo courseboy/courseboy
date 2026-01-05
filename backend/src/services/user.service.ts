@@ -249,6 +249,13 @@ export class UserService {
         ],
       },
       include: {
+        lessons: {
+          select: {
+            id: true,
+            courseId: true,
+            durationSeconds: true,
+          },
+        },
         _count: {
           select: { lessons: true },
         },
@@ -264,32 +271,69 @@ export class UserService {
     });
 
     // Group progress by course
-    const progressByCourse = userAccess.reduce((acc, access) => {
-      const courseId = access.lesson.courseId;
-      if (!acc[courseId]) {
-        acc[courseId] = {
-          completedLessons: 0,
-          totalWatchedSeconds: 0,
+    const progressByCourse = userAccess.reduce(
+      (acc, access) => {
+        const courseId = access.lesson.courseId;
+        if (!acc[courseId]) {
+          acc[courseId] = {
+            completedLessons: 0,
+            totalWatchedSeconds: 0,
+            lessonProgress: {},
+          };
+        }
+        if (access.isCompleted) {
+          acc[courseId].completedLessons++;
+        }
+        acc[courseId].totalWatchedSeconds += access.watchedSeconds;
+        acc[courseId].lessonProgress[access.lessonId] = {
+          watchedSeconds: access.watchedSeconds,
+          durationSeconds: access.lesson.durationSeconds || 0,
         };
-      }
-      if (access.isCompleted) {
-        acc[courseId].completedLessons++;
-      }
-      acc[courseId].totalWatchedSeconds += access.watchedSeconds;
-      return acc;
-    }, {} as Record<number, { completedLessons: number; totalWatchedSeconds: number }>);
+        return acc;
+      },
+      {} as Record<
+        number,
+        {
+          completedLessons: number;
+          totalWatchedSeconds: number;
+          lessonProgress: Record<
+            number,
+            { watchedSeconds: number; durationSeconds: number }
+          >;
+        }
+      >
+    );
 
     // Combine course info with progress
     const result = accessibleCourses.map((course) => {
       const progress = progressByCourse[course.id] || {
         completedLessons: 0,
         totalWatchedSeconds: 0,
+        lessonProgress: {},
       };
       const totalLessons = course._count.lessons;
-      const percentage =
-        totalLessons > 0
-          ? Math.round((progress.completedLessons / totalLessons) * 100)
-          : 0;
+
+      // Calculate percentage based on average of each lesson's watch percentage
+      let percentage = 0;
+      if (totalLessons > 0) {
+        let totalPercentage = 0;
+        course.lessons.forEach((lesson) => {
+          const lessonProg = progress.lessonProgress[lesson.id];
+          if (
+            lessonProg &&
+            lesson.durationSeconds &&
+            lesson.durationSeconds > 0
+          ) {
+            const lessonPercentage = Math.min(
+              (lessonProg.watchedSeconds / lesson.durationSeconds) * 100,
+              100
+            );
+            totalPercentage += lessonPercentage;
+          }
+          // If no progress or no duration, lesson contributes 0%
+        });
+        percentage = Math.round(totalPercentage / totalLessons);
+      }
 
       return {
         courseId: course.id,
@@ -300,7 +344,8 @@ export class UserService {
         totalLessons,
         totalWatchedSeconds: progress.totalWatchedSeconds,
         percentage,
-        isNew: progress.completedLessons === 0,
+        isNew:
+          progress.completedLessons === 0 && progress.totalWatchedSeconds === 0,
       };
     });
 

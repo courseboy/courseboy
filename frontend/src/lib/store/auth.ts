@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { authApi } from "@/lib/api";
+import { authApi, setAuthToken } from "@/lib/api";
 import { useState, useEffect } from "react";
 
 interface User {
@@ -12,6 +12,8 @@ interface User {
 
 interface AuthState {
   user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -19,22 +21,35 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
+  initializeAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
+      accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
+
+      initializeAuth: () => {
+        // Set the token in axios on app initialization
+        const { accessToken } = get();
+        if (accessToken) {
+          setAuthToken(accessToken);
+        }
+      },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login({ email, password });
-          const { user } = response.data.data;
-          // Cookies are set automatically by the server with httpOnly flag
+          const { user, accessToken, refreshToken } = response.data.data;
+
+          // Store tokens and set in axios header for cross-origin support
+          setAuthToken(accessToken);
 
           set({
             user: {
@@ -43,6 +58,8 @@ export const useAuthStore = create<AuthState>()(
               username: user.username,
               roles: user.privileges || [], // Backend returns 'privileges' not 'roles'
             },
+            accessToken,
+            refreshToken,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -63,15 +80,28 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authApi.logout();
-          // Cookies are cleared automatically by the server
         } catch {
           // Continue with logout even if API fails
         }
-        set({ user: null, isAuthenticated: false });
+        setAuthToken(null);
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+        });
       },
 
       checkAuth: async () => {
-        // Try to get current user using httpOnly cookie
+        const { accessToken } = get();
+        if (!accessToken) {
+          set({ user: null, isAuthenticated: false });
+          return;
+        }
+
+        // Ensure token is set in axios
+        setAuthToken(accessToken);
+
         try {
           const response = await authApi.me();
           const userData = response.data.data;
@@ -85,7 +115,14 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
           });
         } catch {
-          set({ user: null, isAuthenticated: false });
+          // Token is invalid, clear auth state
+          setAuthToken(null);
+          set({
+            user: null,
+            accessToken: null,
+            refreshToken: null,
+            isAuthenticated: false,
+          });
         }
       },
 
@@ -95,6 +132,8 @@ export const useAuthStore = create<AuthState>()(
       name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     }
@@ -104,22 +143,26 @@ export const useAuthStore = create<AuthState>()(
 // Hook to handle hydration - prevents hydration mismatch
 export const useAuthHydration = () => {
   const [hydrated, setHydrated] = useState(false);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   useEffect(() => {
     // Wait for Zustand to rehydrate from localStorage
     const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
+      // Initialize auth token after hydration
+      initializeAuth();
       setHydrated(true);
     });
 
     // Check if already hydrated
     if (useAuthStore.persist.hasHydrated()) {
+      initializeAuth();
       setHydrated(true);
     }
 
     return () => {
       unsubFinishHydration();
     };
-  }, []);
+  }, [initializeAuth]);
 
   return hydrated;
 };

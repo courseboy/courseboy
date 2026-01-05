@@ -5,11 +5,40 @@ const API_URL =
 
 export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // This automatically sends httpOnly cookies
+  withCredentials: true, // Still send cookies for localhost/same-origin
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Function to set/clear auth token in axios headers
+// This is needed for cross-origin requests where cookies don't work
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common["Authorization"];
+  }
+};
+
+// Helper to get tokens from localStorage (for refresh)
+const getStoredTokens = () => {
+  if (typeof window === "undefined")
+    return { accessToken: null, refreshToken: null };
+  try {
+    const stored = localStorage.getItem("auth-storage");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        accessToken: parsed.state?.accessToken || null,
+        refreshToken: parsed.state?.refreshToken || null,
+      };
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return { accessToken: null, refreshToken: null };
+};
 
 // Response interceptor to handle token refresh
 api.interceptors.response.use(
@@ -22,18 +51,45 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Call refresh endpoint (cookies sent automatically)
-        await axios.post(
+        const { refreshToken } = getStoredTokens();
+        if (!refreshToken) {
+          throw new Error("No refresh token");
+        }
+
+        // Call refresh endpoint with refresh token in body
+        const response = await axios.post(
           `${API_URL}/auth/refresh`,
-          {},
+          { refreshToken },
           { withCredentials: true }
         );
+
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+          response.data.data;
+
+        // Update stored tokens
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem("auth-storage");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            parsed.state.accessToken = newAccessToken;
+            parsed.state.refreshToken = newRefreshToken;
+            localStorage.setItem("auth-storage", JSON.stringify(parsed));
+          }
+        }
+
+        // Update axios header
+        setAuthToken(newAccessToken);
+
+        // Update original request with new token
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
 
         // Retry original request
         return api(originalRequest);
       } catch {
-        // Refresh failed, redirect to login
+        // Refresh failed, clear auth and redirect to login
+        setAuthToken(null);
         if (typeof window !== "undefined") {
+          localStorage.removeItem("auth-storage");
           window.location.href = "/login";
         }
       }

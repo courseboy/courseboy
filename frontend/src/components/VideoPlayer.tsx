@@ -243,7 +243,6 @@ export default function VideoPlayer({
   // Check URL types
   const isYouTube =
     videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
-  const isGoogleDrive = videoUrl.includes("drive.google.com");
 
   // Extract YouTube video ID
   const getYouTubeVideoId = (url: string): string | null => {
@@ -260,21 +259,6 @@ export default function VideoPlayer({
   };
 
   const youtubeVideoId = isYouTube ? getYouTubeVideoId(videoUrl) : null;
-
-  // Convert Google Drive URL
-  const getEmbedUrl = (url: string) => {
-    const patterns = [
-      /drive\.google\.com\/file\/d\/([^\/]+)/,
-      /drive\.google\.com\/open\?id=([^&]+)/,
-    ];
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        return `https://drive.google.com/file/d/${match[1]}/preview`;
-      }
-    }
-    return url;
-  };
 
   // Save progress function
   const saveProgress = useCallback(
@@ -335,7 +319,7 @@ export default function VideoPlayer({
 
   // HTML5 Video tracking
   useEffect(() => {
-    if (isGoogleDrive || isYouTube) return;
+    if (isYouTube) return;
 
     const video = videoRef.current;
     if (!video) return;
@@ -396,7 +380,7 @@ export default function VideoPlayer({
       video.removeEventListener("pause", handlePause);
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
     };
-  }, [saveProgress, initialProgress, isGoogleDrive, isYouTube]);
+  }, [saveProgress, initialProgress, isYouTube]);
 
   // Progress percentage
   const progressPercentage =
@@ -472,67 +456,6 @@ export default function VideoPlayer({
                   </>
                 )}
               </div>
-
-              {!isCompleted && isAuthenticated && (
-                <button
-                  onClick={handleMarkComplete}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    task_alt
-                  </span>
-                  Mark as Complete
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : isGoogleDrive ? (
-        <div className="relative w-full">
-          <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center z-10">
-                <div className="text-white">Loading video...</div>
-              </div>
-            )}
-            <iframe
-              src={getEmbedUrl(videoUrl)}
-              className="w-full h-full"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              onLoad={() => setIsLoading(false)}
-            />
-          </div>
-
-          <div className="mt-3 space-y-3">
-            {duration > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    isCompleted ? "bg-green-500" : "bg-blue-600"
-                  }`}
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              {isCompleted ? (
-                <span className="flex items-center gap-2 text-green-600 font-medium">
-                  <span className="material-symbols-outlined text-lg">
-                    check_circle
-                  </span>
-                  Lesson Completed
-                </span>
-              ) : (
-                <span className="text-sm text-gray-500">
-                  {duration > 0
-                    ? `Watch to auto-complete (${Math.round(
-                        progressPercentage
-                      )}% watched)`
-                    : "Use button to mark complete"}
-                </span>
-              )}
 
               {!isCompleted && isAuthenticated && (
                 <button

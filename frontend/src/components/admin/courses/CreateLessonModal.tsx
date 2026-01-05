@@ -12,49 +12,122 @@ interface CreateLessonModalProps {
   categoryId: number;
 }
 
-// Process video URL - supports YouTube and Google Drive
-function processVideoUrl(url: string): string | null {
+// Extract YouTube video ID
+function getYouTubeVideoId(url: string): string | null {
   if (!url) return null;
-
-  const trimmedUrl = url.trim();
-
-  // Check if it's a YouTube URL
-  if (trimmedUrl.includes("youtube.com") || trimmedUrl.includes("youtu.be")) {
-    // YouTube URLs are stored as-is, will be processed by VideoPlayer
-    return trimmedUrl;
+  const patterns = [
+    /youtube\.com\/watch\?v=([^&]+)/,
+    /youtube\.com\/embed\/([^?]+)/,
+    /youtu\.be\/([^?]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
   }
-
-  // Check if it's a Google Drive URL
-  if (trimmedUrl.includes("drive.google.com")) {
-    const patterns = [
-      /\/file\/d\/([a-zA-Z0-9_-]+)/,
-      /[?&]id=([a-zA-Z0-9_-]+)/,
-      /\/d\/([a-zA-Z0-9_-]+)/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = trimmedUrl.match(pattern);
-      if (match) {
-        return `https://drive.google.com/file/d/${match[1]}/preview`;
-      }
-    }
-
-    // If no pattern matches but looks like a file ID
-    if (/^[a-zA-Z0-9_-]{20,}$/.test(trimmedUrl)) {
-      return `https://drive.google.com/file/d/${trimmedUrl}/preview`;
-    }
-  }
-
-  // Return as-is for direct video URLs
-  return trimmedUrl;
+  return null;
 }
 
-// Detect video type for validation feedback
-function detectVideoType(url: string): "youtube" | "drive" | "other" | null {
-  if (!url) return null;
-  if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
-  if (url.includes("drive.google.com")) return "drive";
-  return "other";
+// Declare YouTube IFrame API types
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+// Fetch YouTube video duration using IFrame API
+function fetchYouTubeDuration(videoId: string): Promise<number | null> {
+  return new Promise((resolve) => {
+    // Load YouTube IFrame API if not already loaded
+    const loadYTAPI = () => {
+      if (window.YT && window.YT.Player) {
+        createPlayer();
+        return;
+      }
+
+      if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const checkInterval = setInterval(() => {
+          if (window.YT && window.YT.Player) {
+            clearInterval(checkInterval);
+            createPlayer();
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve(null);
+        }, 5000);
+        return;
+      }
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      document.head.appendChild(tag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        createPlayer();
+      };
+
+      setTimeout(() => resolve(null), 5000);
+    };
+
+    const createPlayer = () => {
+      const container = document.createElement("div");
+      container.style.display = "none";
+      document.body.appendChild(container);
+
+      const playerDiv = document.createElement("div");
+      playerDiv.id = `duration-check-${Date.now()}`;
+      container.appendChild(playerDiv);
+
+      try {
+        const player = new window.YT.Player(playerDiv.id, {
+          videoId: videoId,
+          width: "1",
+          height: "1",
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+          },
+          events: {
+            onReady: (event: any) => {
+              const duration = event.target.getDuration();
+              event.target.destroy();
+              document.body.removeChild(container);
+              resolve(duration > 0 ? Math.floor(duration) : null);
+            },
+            onError: () => {
+              try {
+                document.body.removeChild(container);
+              } catch (e) {}
+              resolve(null);
+            },
+          },
+        });
+
+        setTimeout(() => {
+          try {
+            player.destroy();
+            document.body.removeChild(container);
+          } catch (e) {}
+          resolve(null);
+        }, 5000);
+      } catch (err) {
+        try {
+          document.body.removeChild(container);
+        } catch (e) {}
+        resolve(null);
+      }
+    };
+
+    loadYTAPI();
+  });
+}
+
+// Validate YouTube URL
+function isValidYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  return url.includes("youtube.com") || url.includes("youtu.be");
 }
 
 export function CreateLessonModal({
@@ -66,10 +139,10 @@ export function CreateLessonModal({
 }: CreateLessonModalProps) {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [durationMinutes, setDurationMinutes] = useState("");
-  const [durationSeconds, setDurationSeconds] = useState("");
   const [isFreePreview, setIsFreePreview] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchingDuration, setFetchingDuration] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,37 +153,36 @@ export function CreateLessonModal({
       return;
     }
 
-    // Process video URL
-    let processedVideoUrl: string | undefined;
-    if (videoUrl.trim()) {
-      processedVideoUrl = processVideoUrl(videoUrl.trim()) || undefined;
-      if (!processedVideoUrl) {
-        setError(
-          "Invalid video URL. Please use a valid YouTube or Google Drive link."
-        );
-        return;
-      }
+    if (!videoUrl.trim()) {
+      setError("YouTube video URL is required");
+      return;
     }
 
-    // Calculate duration in seconds
-    const mins = parseInt(durationMinutes) || 0;
-    const secs = parseInt(durationSeconds) || 0;
-    const totalSeconds = mins * 60 + secs;
+    // Validate YouTube URL
+    if (!isValidYouTubeUrl(videoUrl.trim())) {
+      setError("Invalid YouTube URL. Please use a valid YouTube link.");
+      return;
+    }
+
+    // Ensure duration is detected
+    if (!videoDuration) {
+      setError("Please wait for video duration to be detected.");
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
       await adminCourseApi.createLesson(courseId, categoryId, {
         title: title.trim(),
-        videoUrl: processedVideoUrl,
-        durationSeconds: totalSeconds > 0 ? totalSeconds : undefined,
+        videoUrl: videoUrl.trim(),
+        durationSeconds: videoDuration || undefined,
         isFreePreview,
       });
       // Reset form
       setTitle("");
       setVideoUrl("");
-      setDurationMinutes("");
-      setDurationSeconds("");
+      setVideoDuration(null);
       setIsFreePreview(false);
       onSuccess();
     } catch (err: unknown) {
@@ -121,8 +193,23 @@ export function CreateLessonModal({
     }
   };
 
-  // Detect video type for UI feedback
-  const videoType = detectVideoType(videoUrl);
+  // Check if URL is valid YouTube
+  const videoId = getYouTubeVideoId(videoUrl);
+  const isValidYouTube = videoId !== null;
+
+  // Auto-fetch duration when URL changes
+  const handleVideoUrlChange = async (url: string) => {
+    setVideoUrl(url);
+    setVideoDuration(null);
+
+    const id = getYouTubeVideoId(url);
+    if (id) {
+      setFetchingDuration(true);
+      const duration = await fetchYouTubeDuration(id);
+      setVideoDuration(duration);
+      setFetchingDuration(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -166,76 +253,68 @@ export function CreateLessonModal({
           {/* Video URL */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[#1F2933]">
-              Video URL
+              YouTube Video URL <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="YouTube or Google Drive URL"
+              onChange={(e) => handleVideoUrlChange(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
               className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]/20 focus:border-[#3A7BD5] transition-colors"
             />
             <p className="text-xs text-[#6B7280]">
-              Supports YouTube (recommended) or Google Drive links
+              Paste a YouTube video URL. Duration will be auto-detected.
             </p>
-            {videoUrl && videoType && (
+            {videoUrl && (
               <div className="mt-2 p-2 bg-slate-50 rounded-lg text-xs">
-                {videoType === "youtube" ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <span className="material-symbols-outlined text-[16px]">
-                      check_circle
-                    </span>
-                    <span>YouTube video detected ✓</span>
-                  </div>
-                ) : videoType === "drive" ? (
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <span className="material-symbols-outlined text-[16px]">
-                      check_circle
-                    </span>
-                    <span>Google Drive video detected</span>
+                {isValidYouTube ? (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <span className="material-symbols-outlined text-[16px]">
+                        check_circle
+                      </span>
+                      <span>Valid YouTube URL ✓</span>
+                    </div>
+                    {fetchingDuration && (
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <span className="material-symbols-outlined text-[16px] animate-spin">
+                          progress_activity
+                        </span>
+                        <span>Detecting video duration...</span>
+                      </div>
+                    )}
+                    {!fetchingDuration && videoDuration !== null && (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <span className="material-symbols-outlined text-[16px]">
+                          schedule
+                        </span>
+                        <span>
+                          Duration: {Math.floor(videoDuration / 60)}:
+                          {String(videoDuration % 60).padStart(2, "0")} min
+                        </span>
+                      </div>
+                    )}
+                    {!fetchingDuration && videoDuration === null && (
+                      <div className="flex items-center gap-2 text-amber-600">
+                        <span className="material-symbols-outlined text-[16px]">
+                          warning
+                        </span>
+                        <span>
+                          Failed to detect duration. Please try again.
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-amber-600">
+                  <div className="flex items-center gap-2 text-red-600">
                     <span className="material-symbols-outlined text-[16px]">
-                      info
+                      error
                     </span>
-                    <span>Direct video URL</span>
+                    <span>Invalid YouTube URL</span>
                   </div>
                 )}
               </div>
             )}
-          </div>
-
-          {/* Duration */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#1F2933]">
-              Duration
-            </label>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  className="w-16 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]/20 focus:border-[#3A7BD5] transition-colors text-center"
-                />
-                <span className="text-sm text-[#6B7280]">min</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={durationSeconds}
-                  onChange={(e) => setDurationSeconds(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  max="59"
-                  className="w-16 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3A7BD5]/20 focus:border-[#3A7BD5] transition-colors text-center"
-                />
-                <span className="text-sm text-[#6B7280]">sec</span>
-              </div>
-            </div>
           </div>
 
           {/* Free Preview */}
@@ -272,7 +351,7 @@ export function CreateLessonModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || fetchingDuration || !videoDuration}
               className="inline-flex items-center gap-2 px-5 py-2 bg-[#3A7BD5] hover:bg-[#2c62b0] text-white rounded-lg text-sm font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

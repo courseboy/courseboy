@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import Cookies from "js-cookie";
 import { authApi } from "@/lib/api";
 import { useState, useEffect } from "react";
 
@@ -34,10 +33,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login({ email, password });
-          const { user, accessToken, refreshToken } = response.data.data;
-
-          Cookies.set("accessToken", accessToken, { expires: 7 });
-          Cookies.set("refreshToken", refreshToken, { expires: 30 });
+          const { user } = response.data.data;
+          // Cookies are set automatically by the server with httpOnly flag
 
           set({
             user: {
@@ -50,7 +47,9 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
         } catch (error: unknown) {
-          const apiError = error as { response?: { data?: { message?: string } } };
+          const apiError = error as {
+            response?: { data?: { message?: string } };
+          };
           const errorMessage =
             apiError.response?.data?.message || "Login failed";
           set({
@@ -64,21 +63,15 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authApi.logout();
+          // Cookies are cleared automatically by the server
         } catch {
           // Continue with logout even if API fails
         }
-        Cookies.remove("accessToken");
-        Cookies.remove("refreshToken");
         set({ user: null, isAuthenticated: false });
       },
 
       checkAuth: async () => {
-        const token = Cookies.get("accessToken");
-        if (!token) {
-          set({ user: null, isAuthenticated: false });
-          return;
-        }
-
+        // Try to get current user using httpOnly cookie
         try {
           const response = await authApi.me();
           const userData = response.data.data;
@@ -92,8 +85,6 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
           });
         } catch {
-          Cookies.remove("accessToken");
-          Cookies.remove("refreshToken");
           set({ user: null, isAuthenticated: false });
         }
       },
